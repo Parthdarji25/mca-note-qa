@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Connect to GitHub · MCA Notes Admin</title>
+  <meta name="description" content="Sign in to the MCA Notes admin area with a GitHub token.">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body class="admin">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="admin-header" id="admin-header"></header>
+
+  <main id="main" class="container admin-main">
+    <h1 class="admin-title">Connect to GitHub</h1>
+    <p class="admin-lead">The admin area edits the Q&amp;A files in your repository through the GitHub API. Your token stays in this browser and is only sent to api.github.com.</p>
+
+    <div class="admin-grid">
+      <div>
+        <div id="status" class="banner banner-error" role="alert" hidden></div>
+
+        <section class="panel" id="connect-panel" aria-labelledby="connect-title">
+          <h2 id="connect-title">Sign in</h2>
+          <form id="connect-form" novalidate>
+            <div class="field">
+              <label for="repo">Repository</label>
+              <input class="input mono" id="repo" name="repo" type="text" value="Parthdarji25/mca-note-qa" autocomplete="off" spellcheck="false" required>
+              <span class="hint">Written as owner/repo.</span>
+            </div>
+            <div class="field">
+              <label for="branch">Branch</label>
+              <input class="input mono" id="branch" name="branch" type="text" value="main" autocomplete="off" spellcheck="false" required>
+            </div>
+            <div class="field">
+              <label for="token">Personal access token</label>
+              <input class="input mono" id="token" name="token" type="password" autocomplete="off" spellcheck="false" required>
+              <span class="hint">A fine-grained token for this repository only. See the steps on the right.</span>
+            </div>
+            <fieldset class="radio-group">
+              <legend>Keep me signed in</legend>
+              <label class="radio">
+                <input type="radio" name="persist" value="session" checked>
+                <span>Until I close this tab<small>Recommended. The token is forgotten when the tab closes.</small></span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="persist" value="device">
+                <span>On this device<small>The token stays in this browser until you sign out. Only use this on your own computer.</small></span>
+              </label>
+            </fieldset>
+            <button class="btn btn-primary" id="connect-btn" type="submit">Connect</button>
+          </form>
+        </section>
+
+        <section class="panel connected" id="connected-panel" aria-labelledby="connected-title" hidden>
+          <h2 id="connected-title">You are connected</h2>
+          <dl>
+            <dt>Repository</dt><dd id="c-repo"></dd>
+            <dt>Branch</dt><dd id="c-branch"></dd>
+            <dt>Token kept</dt><dd id="c-kept"></dd>
+          </dl>
+          <div class="btn-row">
+            <a class="btn btn-primary" href="chapters.html">Manage chapters</a>
+            <button class="btn" id="signout-btn" type="button">Sign out</button>
+          </div>
+        </section>
+      </div>
+
+      <aside class="panel" aria-labelledby="help-title">
+        <h2 id="help-title">Create a fine-grained token</h2>
+        <ol class="steps-list">
+          <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">GitHub &rarr; Settings &rarr; Developer settings &rarr; Fine-grained tokens</a> and choose <strong>Generate new token</strong>.</li>
+          <li>Under <strong>Repository access</strong>, pick <strong>Only select repositories</strong> and choose this repository only.</li>
+          <li>Under <strong>Repository permissions</strong>, set <strong>Contents</strong> to <strong>Read and write</strong>.</li>
+          <li>Set an <strong>expiry date</strong> (30 to 90 days is a good choice).</li>
+          <li>Generate the token, copy it, and paste it here.</li>
+        </ol>
+        <p class="callout">Never share the token, post it in an issue, or commit it to the repository. If it leaks, delete it in GitHub settings straight away.</p>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="admin-footer" id="admin-footer"></footer>
+  <script type="module" src="../assets/js/admin/connect.js"></script>
+</body>
+</html>

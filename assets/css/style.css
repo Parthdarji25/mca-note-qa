@@ -681,3 +681,5 @@ a.chapter-row:hover { background: var(--tint); }
   .pager-card.next { grid-column: auto; }
   .pager-spacer { display: none; }
 }
+
+[hidden] { display: none !important; }
