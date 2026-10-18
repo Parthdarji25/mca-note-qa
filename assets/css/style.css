@@ -461,3 +461,108 @@ code, pre, .mono { font-family: var(--font-mono); }
   color: var(--code-text);
   font: 400 13px/1.7 var(--font-mono);
 }
+
+/* ---------- Subject page ---------- */
+
+.subject-hero {
+  background: var(--accent);
+  color: #fff;
+  padding-block: 32px 40px;
+}
+.subject-hero h1 { color: #fff; font-size: clamp(30px, 5.5vw, 48px); line-height: 1.1; margin-top: 16px; }
+.breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.breadcrumb a { display: inline-flex; align-items: center; min-height: 32px; color: #fff; }
+.breadcrumb li + li::before { content: "/"; margin-right: 8px; opacity: 0.7; }
+.breadcrumb [aria-current] { opacity: 0.9; }
+.hero-stats { margin-top: 12px; font: 500 14px/1.5 var(--font-mono); opacity: 0.95; }
+.subject-hero .hero-actions { margin-top: 24px; }
+.btn-on-accent { background: #fff; border-color: #fff; color: var(--accent-dark); }
+.btn-on-accent:hover { background: var(--tint); }
+.btn-outline-light { border-color: #fff; color: #fff; }
+.btn-outline-light:hover { background: rgba(255, 255, 255, 0.16); }
+.subject-hero :focus-visible { outline-color: #fff; }
+
+.subject-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 32px;
+  align-items: start;
+  padding-block: 32px 0;
+}
+@media (max-width: 899px) {
+  .subject-layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+.chapter-group + .chapter-group { margin-top: 28px; }
+.group-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-bottom: 10px; }
+.group-label { color: var(--accent-dark); font: 500 13px/1.4 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; }
+.group-name { font-size: 20px; }
+
+.chapter-list { margin: 0; padding: 0; list-style: none; overflow: hidden; }
+.chapter-list li + li { border-top: 1px solid var(--line-soft); }
+.chapter-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 60px;
+  padding: 10px 16px;
+  color: var(--ink);
+  text-decoration: none;
+}
+a.chapter-row:hover { background: var(--tint); }
+.chapter-row.is-soon { color: var(--muted); }
+.chapter-row:focus-visible { outline-offset: -3px; }
+
+.status-dot {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: transparent;
+}
+.status-dot.done { background: var(--accent); }
+.status-dot.progress { box-shadow: 0 0 0 3px var(--tint); background: var(--tint); }
+.status-dot.none { border-color: var(--input-border); border-style: dashed; }
+
+.chapter-no { flex: none; width: 2ch; font: 500 15px/1 var(--font-mono); color: var(--accent-dark); }
+.is-soon .chapter-no { color: var(--muted); }
+.chapter-title { flex: 1; min-width: 0; font-weight: 500; }
+.chapter-status { flex: none; color: var(--text-2); font-size: 14px; }
+.is-soon .chapter-status { color: var(--muted); }
+.chapter-count { flex: none; width: 5ch; text-align: right; font: 500 14px/1 var(--font-mono); color: var(--text-2); }
+
+@media (max-width: 479px) {
+  .chapter-row { flex-wrap: wrap; row-gap: 2px; }
+  .chapter-title { flex-basis: calc(100% - 60px); }
+  .chapter-status, .chapter-count { margin-left: 56px; width: auto; text-align: left; }
+}
+
+.side { display: grid; gap: 20px; }
+.side-card { padding: 20px; }
+.side-card h2 { font-size: 18px; margin-bottom: 14px; }
+.btn-sm { min-height: var(--touch); padding: 0 16px; }
+.btn-danger { border-color: var(--danger); color: var(--danger); }
+.btn-danger:hover { background: var(--danger-bg); }
+.side-note { margin-top: 10px; color: var(--text-2); font-size: 14px; min-height: 1.4em; }
+.side-note.is-error { color: var(--danger); }
+.side-links { margin: 0; padding: 0; list-style: none; }
+.side-links a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: var(--touch);
+  color: var(--ink);
+  font-weight: 500;
+  text-decoration: none;
+}
+.side-links a:hover { text-decoration: underline; }
+.side-links .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex: none; }
+.side-links a span:first-child { display: inline-flex; align-items: center; gap: 10px; }
+
+.not-found { padding-block: 80px; max-width: 56ch; }
+.not-found h1 { font-size: clamp(28px, 5vw, 40px); }
+.not-found p { margin: 12px 0 24px; color: var(--text-2); }
+.side-links .mono { white-space: nowrap; color: var(--text-2); font-size: 13px; }
+.side-note:empty { display: none; }

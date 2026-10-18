@@ -1,5 +1,9 @@
 // Shared data helpers: load the syllabus and build file paths.
 
+/** GitHub repository (owner/name) and branch the site is published from. */
+export const REPO = "Parthdarji25/mca-note-qa";
+export const BRANCH = "main";
+
 /**
  * Fetch and return the list of subjects from data/subjects.json.
  * Pass a base path ("../" from /admin/) when calling from a subfolder.
