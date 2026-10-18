@@ -102,3 +102,54 @@ textarea.input { min-height: 120px; padding: 10px 14px; line-height: 1.5; resize
 .connected dt { color: var(--text-2); }
 .connected dd { margin: 0; font-family: var(--font-mono); overflow-wrap: anywhere; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* ---------- Tabs, tables, lists ---------- */
+
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.tab {
+  min-height: var(--touch);
+  padding: 0 18px;
+  border: 1px solid var(--input-border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-2);
+  font: 500 15px/1 var(--font-body);
+  cursor: pointer;
+}
+.tab:hover { border-color: var(--ink); color: var(--ink); }
+.tab[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+.table-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.table-head h2 { margin: 0; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.data-table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 15px; }
+.data-table th, .data-table td { padding: 10px 14px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--line-soft); }
+.data-table th { background: var(--line-soft); color: var(--ink); font-weight: 600; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
+.data-table tr:last-child td { border-bottom: 0; }
+.data-table .group-row th { background: var(--surface); text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--text-2); border-bottom: 1px solid var(--line); }
+.data-table .num { width: 56px; font-family: var(--font-mono); }
+.data-table .file { font-family: var(--font-mono); font-size: 13px; overflow-wrap: anywhere; }
+.data-table .muted { color: var(--muted); }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn-sm { min-height: var(--touch); padding: 0 14px; font-size: 14px; }
+
+.commit-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+.commit-list li { display: grid; gap: 2px; }
+.commit-list a { color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
+.commit-list .meta { color: var(--text-2); font-size: 13px; }
+.rule-list { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--text-2); font-size: 14px; }
+.rule-list code { padding: 1px 5px; background: var(--line-soft); border-radius: 4px; font-size: 12.5px; color: var(--ink); }
+
+/* ---------- Modal ---------- */
+
+dialog.modal { width: min(560px, calc(100vw - 32px)); padding: 0; border: 0; border-radius: var(--radius-lg); background: var(--surface); color: var(--text); box-shadow: 0 20px 60px rgba(21, 23, 28, 0.35); }
+dialog.modal::backdrop { background: rgba(21, 23, 28, 0.55); }
+.modal-body { padding: 24px; }
+.modal-body h2 { font-size: 20px; margin-bottom: 12px; }
+.modal-path { display: block; margin: 8px 0 16px; padding: 10px 12px; background: var(--line-soft); border-radius: var(--radius-sm); font: 400 13px/1.5 var(--font-mono); overflow-wrap: anywhere; color: var(--ink); }
+.modal-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+.btn-danger-solid { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn-danger-solid:hover { background: #7F1515; border-color: #7F1515; }
+.btn[disabled] { opacity: 0.6; cursor: progress; }
+
+.muted { color: var(--muted); }

@@ -86,3 +86,45 @@ export function renderShell(active) {
     footer.replaceChildren(inner);
   }
 }
+
+/**
+ * Show the green "Pushed to <branch>" banner after a commit.
+ * @param {HTMLElement} container The banner element (usually class "banner banner-success").
+ * @param {{short: string, message: string, url: string}} commit Result of commitChanges().
+ * @param {{href: string, text: string}} [link] Optional link, e.g. "View Q&A page".
+ */
+export function showPushedBanner(container, commit, link) {
+  const session = getSession();
+  const text = el(
+    "span",
+    "banner-text",
+    `Pushed to ${session ? session.branch : "main"} · ${commit.short} · ${commit.message} · The live site updates in about a minute`
+  );
+  const parts = [text];
+  const sha = el("a", "", "View commit");
+  sha.href = commit.url;
+  sha.target = "_blank";
+  sha.rel = "noopener noreferrer";
+  parts.push(sha);
+  if (link) {
+    const a = el("a", "", link.text);
+    a.href = link.href;
+    parts.push(a);
+  }
+  container.className = "banner banner-success";
+  container.hidden = false;
+  container.setAttribute("role", "status");
+  container.replaceChildren(...parts);
+}
+
+/**
+ * Show a red error banner.
+ * @param {HTMLElement} container
+ * @param {string} message
+ */
+export function showErrorBanner(container, message) {
+  container.className = "banner banner-error";
+  container.hidden = false;
+  container.setAttribute("role", "alert");
+  container.textContent = message;
+}

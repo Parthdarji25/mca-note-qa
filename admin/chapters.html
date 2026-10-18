@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Chapters · MCA Notes Admin</title>
+  <meta name="description" content="Create, edit and delete chapter Q&amp;A files.">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body class="admin">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="admin-header" id="admin-header"></header>
+
+  <main id="main" class="container admin-main">
+    <h1 class="admin-title">Chapters</h1>
+    <p class="admin-lead">Every chapter is one Q&amp;A file in the repository. Create, edit or delete them here; each change is one commit.</p>
+
+    <div id="banner" class="banner" hidden></div>
+
+    <div class="tabs" id="tabs" role="tablist" aria-label="Subjects"></div>
+
+    <div class="admin-grid">
+      <section aria-labelledby="table-title">
+        <div class="table-head">
+          <h2 id="table-title">Loading…</h2>
+          <a class="btn btn-primary btn-sm" id="add-chapter" href="editor.html">Add chapter</a>
+        </div>
+        <div class="table-wrap" id="table-wrap" aria-live="polite">
+          <p class="panel">Loading chapters from GitHub…</p>
+        </div>
+      </section>
+
+      <aside>
+        <section class="panel" aria-labelledby="recent-title">
+          <h2 id="recent-title">Recent commits</h2>
+          <ul class="commit-list" id="recent"><li class="muted">Loading…</li></ul>
+        </section>
+        <section class="panel" aria-labelledby="naming-title">
+          <h2 id="naming-title">File naming</h2>
+          <ul class="rule-list">
+            <li>Path: <code>qa/sem-N/subject/chNN-title.md</code> (or <code>.html</code>)</li>
+            <li>Lowercase, words joined with single hyphens.</li>
+            <li>Chapter number is two digits: <code>ch01</code> to <code>ch14</code>.</li>
+            <li><code>&amp;</code> becomes <code>and</code>; other symbols become <code>-</code>.</li>
+            <li>One file per chapter, either <code>.md</code> or <code>.html</code>, never both.</li>
+            <li>The path is generated for you; you never type it.</li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <dialog class="modal" id="delete-dialog" aria-labelledby="delete-title">
+    <form method="dialog" class="modal-body" id="delete-form">
+      <h2 id="delete-title">Delete this Q&amp;A file?</h2>
+      <p>This removes the file and marks the chapter as "Coming soon" in one commit.</p>
+      <code class="modal-path" id="delete-path"></code>
+      <div class="field">
+        <label for="delete-message">Commit message</label>
+        <input class="input" id="delete-message" type="text" required>
+      </div>
+      <div id="delete-error" class="banner banner-error" role="alert" hidden></div>
+      <div class="modal-actions">
+        <button class="btn" type="button" id="delete-cancel">Cancel</button>
+        <button class="btn btn-danger-solid" type="submit" id="delete-confirm">Delete and commit</button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer class="admin-footer" id="admin-footer"></footer>
+  <script type="module" src="../assets/js/admin/chapters.js"></script>
+</body>
+</html>
