@@ -1,0 +1,349 @@
+{
+  "subjects": [
+    {
+      "id": "information-security",
+      "name": "Information Security",
+      "semester": 2,
+      "folder": "qa/sem-2/information-security",
+      "color": {
+        "accent": "#2448C8",
+        "tint": "#E8EDFB",
+        "dark": "#16308F"
+      },
+      "groups": [
+        {
+          "label": "Module 1",
+          "name": "Introduction",
+          "chapters": [
+            {
+              "no": 1,
+              "title": "Introduction",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        },
+        {
+          "label": "Module 2",
+          "name": "Cryptography and Authentication",
+          "chapters": [
+            {
+              "no": 2,
+              "title": "Cryptography",
+              "file": "ch02-cryptography.md",
+              "questions": 6
+            },
+            {
+              "no": 3,
+              "title": "Stream Cipher and Block Cipher",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 4,
+              "title": "Authentication – I",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 5,
+              "title": "Authentication – II",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        },
+        {
+          "label": "Module 3",
+          "name": "Digital Certificates and Integrity",
+          "chapters": [
+            {
+              "no": 6,
+              "title": "Digital Signature",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 7,
+              "title": "Public Key Infrastructure",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 8,
+              "title": "Integrity",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        },
+        {
+          "label": "Module 4",
+          "name": "Internet and Web Security",
+          "chapters": [
+            {
+              "no": 9,
+              "title": "Internet and Web Security",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        },
+        {
+          "label": "Module 5",
+          "name": "Firewall and IDS",
+          "chapters": [
+            {
+              "no": 10,
+              "title": "Firewall",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 11,
+              "title": "Intrusion",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        },
+        {
+          "label": "Module 6",
+          "name": "Database and OS Security",
+          "chapters": [
+            {
+              "no": 12,
+              "title": "Database and OS Security",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "distributed-systems-cloud-computing",
+      "name": "Distributed Systems and Cloud Computing",
+      "semester": 3,
+      "folder": "qa/sem-3/distributed-systems-cloud-computing",
+      "color": {
+        "accent": "#0B6B63",
+        "tint": "#E1F1EE",
+        "dark": "#08504A"
+      },
+      "groups": [
+        {
+          "label": "Unit I",
+          "name": "",
+          "chapters": [
+            {
+              "no": 1,
+              "title": "Introduction To Distributed Computing Concepts",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 2,
+              "title": "Introduction To Distributed Computing Concepts",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        },
+        {
+          "label": "Unit II",
+          "name": "",
+          "chapters": [
+            {
+              "no": 3,
+              "title": "Clock Synchronization",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 4,
+              "title": "Election Algorithms",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        },
+        {
+          "label": "Unit III",
+          "name": "",
+          "chapters": [
+            {
+              "no": 5,
+              "title": "Distributed Shared Memory",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        },
+        {
+          "label": "Unit IV",
+          "name": "",
+          "chapters": [
+            {
+              "no": 6,
+              "title": "Distributed System Management",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 7,
+              "title": "Distributed System Management",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 8,
+              "title": "Distributed System Management",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        },
+        {
+          "label": "Unit V",
+          "name": "",
+          "chapters": [
+            {
+              "no": 9,
+              "title": "Introduction To Cloud Computing",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        },
+        {
+          "label": "Unit VI",
+          "name": "",
+          "chapters": [
+            {
+              "no": 10,
+              "title": "Cloud Computing",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 11,
+              "title": "Cloud Platforms",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 12,
+              "title": "Cloud Issues And Challenges",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ethical-hacking",
+      "name": "Ethical Hacking",
+      "semester": 3,
+      "folder": "qa/sem-3/ethical-hacking",
+      "color": {
+        "accent": "#B4410B",
+        "tint": "#FBEADF",
+        "dark": "#8A3108"
+      },
+      "groups": [
+        {
+          "label": "",
+          "name": "Chapters",
+          "chapters": [
+            {
+              "no": 1,
+              "title": "Introduction to Ethical Hacking",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 2,
+              "title": "Introduction to Ethical Hacking",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 3,
+              "title": "Footprinting and Reconnaissance",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 4,
+              "title": "Scanning Networks",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 5,
+              "title": "Enumeration and Sniffing",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 6,
+              "title": "Trojans and Other Attacks",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 7,
+              "title": "Trojans and Other Attacks",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 8,
+              "title": "Trojans and Other Attacks",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 9,
+              "title": "Session Hijacking",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 10,
+              "title": "SQL Injection",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 11,
+              "title": "Wireless Network Hacking",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 12,
+              "title": "Cloud Computing Security",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 13,
+              "title": "Cryptography",
+              "file": null,
+              "questions": 0
+            },
+            {
+              "no": 14,
+              "title": "Pen Testing",
+              "file": null,
+              "questions": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
