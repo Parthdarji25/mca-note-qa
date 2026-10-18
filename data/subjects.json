@@ -260,8 +260,8 @@
             {
               "no": 1,
               "title": "Introduction to Ethical Hacking",
-              "file": null,
-              "questions": 0
+              "file": "ch01-introduction-to-ethical-hacking.html",
+              "questions": 3
             },
             {
               "no": 2,

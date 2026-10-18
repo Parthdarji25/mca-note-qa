@@ -1,0 +1,44 @@
+<!-- Test file: contains script tags, event handlers, inline styles and an iframe that the site must strip. -->
+<script>document.title = "pwned";</script>
+<section class="question" data-marks="5">
+  <h2>What is ethical hacking?</h2>
+  <div class="answer">
+    <p onclick="alert('xss')"><strong>Ethical hacking</strong> is the authorised practice of probing a system for weaknesses so they can be fixed before attackers find them.</p>
+    <script>alert('script in answer');</script>
+    <ul>
+      <li>It is done with the owner's written permission.</li>
+      <li>Findings are reported, not exploited.</li>
+    </ul>
+    <blockquote class="note"><strong>Remember:</strong> permission and scope come first.</blockquote>
+  </div>
+</section>
+
+<section class="question" data-marks="10">
+  <h2>Differentiate between white-hat, black-hat and grey-hat hackers.</h2>
+  <div class="answer">
+    <table>
+      <thead><tr><th>Type</th><th>Intent</th><th>Permission</th></tr></thead>
+      <tbody>
+        <tr><td>White hat</td><td>Defend and improve security</td><td>Yes</td></tr>
+        <tr><td>Black hat</td><td>Steal, damage or profit</td><td>No</td></tr>
+        <tr><td>Grey hat</td><td>Mixed; often discloses what it finds</td><td>Usually not</td></tr>
+      </tbody>
+    </table>
+    <p style="color:red" onmouseover="alert(1)">Only white-hat work is legal and ethical.</p>
+    <p><a href="javascript:alert(1)">bad link</a> and <a href="https://owasp.org">a good link</a>.</p>
+  </div>
+</section>
+
+<section class="question" data-marks="5">
+  <h2>List the phases of ethical hacking.</h2>
+  <div class="answer">
+    <ol>
+      <li>Reconnaissance</li>
+      <li>Scanning</li>
+      <li>Gaining access</li>
+      <li>Maintaining access</li>
+      <li>Covering tracks and reporting</li>
+    </ol>
+    <iframe src="https://example.com"></iframe>
+  </div>
+</section>
