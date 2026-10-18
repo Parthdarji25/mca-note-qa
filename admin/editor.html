@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Q&amp;A editor · MCA Notes Admin</title>
+  <meta name="description" content="Write or upload the questions and answers for one chapter.">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body class="admin">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="admin-header" id="admin-header"></header>
+
+  <main id="main" class="container admin-main">
+    <h1 class="admin-title" id="page-title">Q&amp;A editor</h1>
+    <p class="admin-lead">Write the questions here, or upload a ready-made .html file. Saving makes one commit that updates the Q&amp;A file and <span class="mono">data/subjects.json</span> together.</p>
+
+    <div id="banner" class="banner" hidden></div>
+    <div id="notices"></div>
+
+    <div class="admin-grid editor-grid">
+      <div>
+        <section class="panel" aria-labelledby="details-title">
+          <h2 id="details-title">Chapter details</h2>
+          <div class="details-grid">
+            <div class="field">
+              <label for="semester">Semester</label>
+              <select class="input" id="semester"></select>
+            </div>
+            <div class="field">
+              <label for="subject">Subject</label>
+              <select class="input" id="subject"></select>
+            </div>
+            <div class="field">
+              <label for="group">Module / Unit</label>
+              <select class="input" id="group"></select>
+            </div>
+            <div class="field">
+              <label for="chno">Chapter no.</label>
+              <input class="input mono" id="chno" type="number" min="1" max="99" inputmode="numeric">
+            </div>
+            <div class="field wide">
+              <label for="chtitle">Chapter title</label>
+              <input class="input" id="chtitle" type="text" autocomplete="off">
+              <span class="hint" id="lock-hint" hidden>The subject, module and number belong to the syllabus, so they are locked. Changing the title renames the file.</span>
+            </div>
+          </div>
+          <p class="saves-to">Saves to <code class="mono" id="saves-to">—</code></p>
+        </section>
+
+        <section class="panel" aria-labelledby="content-title">
+          <div class="table-head">
+            <h2 id="content-title">Questions and answers</h2>
+            <div class="tabs mode-tabs" role="tablist" aria-label="How to provide the questions" style="margin-top:0">
+              <button class="tab" type="button" role="tab" id="tab-write" aria-controls="write-pane" aria-selected="true">Write questions</button>
+              <button class="tab" type="button" role="tab" id="tab-upload" aria-controls="upload-pane" aria-selected="false">Upload .html file</button>
+            </div>
+          </div>
+
+          <div class="image-tool">
+            <label class="btn btn-sm" for="image-input">Upload image</label>
+            <input class="sr-only" id="image-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
+            <span class="hint" id="image-status" role="status">PNG, JPG, GIF or WebP, up to 2 MB. Saved to the images folder with the chapter.</span>
+          </div>
+
+          <div id="write-pane" role="tabpanel" aria-labelledby="tab-write">
+            <div id="cards" class="cards"></div>
+            <button class="btn" type="button" id="add-question">Add question</button>
+          </div>
+
+          <div id="upload-pane" role="tabpanel" aria-labelledby="tab-upload" hidden>
+            <label class="dropzone" id="dropzone" for="html-input">
+              <span class="dropzone-title">Drop an .html file here, or choose one</span>
+              <span class="hint">Questions go in <code class="mono">&lt;section class="question" data-marks="5"&gt;</code>. See the format guide.</span>
+              <input class="sr-only" id="html-input" type="file" accept=".html,.htm,text/html">
+            </label>
+            <p class="upload-info" id="upload-info" role="status"></p>
+            <div id="upload-warn"></div>
+            <div id="upload-preview" class="preview"></div>
+          </div>
+        </section>
+      </div>
+
+      <aside>
+        <section class="panel sticky" aria-labelledby="commit-title">
+          <h2 id="commit-title">Commit</h2>
+          <div class="field">
+            <label for="message">Commit message</label>
+            <input class="input" id="message" type="text" autocomplete="off">
+          </div>
+          <h3 id="files-title">Files changed</h3>
+          <ul class="files" id="files" aria-labelledby="files-title"><li class="muted">No changes yet.</li></ul>
+          <div id="problems" class="banner banner-error" role="alert" hidden></div>
+          <div class="btn-row commit-actions">
+            <button class="btn btn-primary" type="button" id="commit-btn">Commit and push to main</button>
+            <button class="btn" type="button" id="discard-btn">Discard changes</button>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="admin-footer" id="admin-footer"></footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous"></script>
+  <script type="module" src="../assets/js/admin/editor.js"></script>
+</body>
+</html>

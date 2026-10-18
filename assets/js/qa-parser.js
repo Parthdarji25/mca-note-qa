@@ -74,6 +74,7 @@ function installHooks() {
 
 function describeRemoved(entry) {
   if (entry.element && entry.element.nodeName && entry.element.nodeType === 1) {
+    if (/^(body|head|html)$/i.test(entry.element.nodeName)) return null; // parser wrapper, not author content
     return `<${entry.element.nodeName.toLowerCase()}> element`;
   }
   if (entry.attribute) {
@@ -122,7 +123,8 @@ function renumberWarnings(sourceNos, warnings) {
  * Parse a Markdown Q&A file.
  * @param {string} text File contents.
  * @param {string} [baseFolder] Folder of the chapter file, for image paths.
- * @returns {{questions: Array<{no: number, question: string, marks: 5|10, answerHtml: string}>, errors: string[], warnings: string[], removed: string[]}}
+ * @returns {{questions: Array<{no: number, question: string, marks: 5|10, answerHtml: string, answerMd: string}>, errors: string[], warnings: string[], removed: string[]}}
+ *   `answerMd` is the answer's original Markdown, kept so the admin editor can edit and save it.
  */
 export function parseMarkdownQA(text, baseFolder = "") {
   if (librariesMissing()) return failure("The Markdown or sanitiser library did not load. Check your connection and reload.");
@@ -166,7 +168,7 @@ export function parseMarkdownQA(text, baseFolder = "") {
       const { html, removed: gone } = sanitizeAnswer(marked.parse(answerMd, { gfm: true }), baseFolder);
       gone.forEach((g) => removed.add(g));
       sourceNos.push(h.srcNo);
-      questions.push({ no: questions.length + 1, question: h.title, marks, answerHtml: html });
+      questions.push({ no: questions.length + 1, question: h.title, marks, answerHtml: html, answerMd });
     });
 
     renumberWarnings(sourceNos, warnings);
@@ -242,4 +244,34 @@ export function parseHtmlQA(text, baseFolder = "") {
  */
 export function parseQA(fileName, text, baseFolder = "") {
   return /\.html?$/i.test(fileName) ? parseHtmlQA(text, baseFolder) : parseMarkdownQA(text, baseFolder);
+}
+
+/**
+ * Write questions in the exact Markdown file format of section 5.
+ * @param {Array<{question: string, marks: number, answerMd: string}>} questions In display order.
+ * @returns {string} File contents ending with a newline.
+ */
+export function serializeMarkdownQA(questions) {
+  const blocks = questions.map((q, i) => {
+    const title = q.question.replace(/\s+/g, " ").trim();
+    const answer = q.answerMd.replace(/\r\n?/g, "\n").trim();
+    return `## Q${i + 1}. ${title}\nMarks: ${q.marks}\n\n${answer}`;
+  });
+  return `${blocks.join("\n\n")}\n`;
+}
+
+const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/**
+ * Write questions in the HTML file format of section 5. `answerHtml` must already be sanitised
+ * and parsed WITHOUT a base folder, so image paths stay relative to the chapter file.
+ * @param {Array<{question: string, marks: number, answerHtml: string}>} questions
+ * @returns {string} File contents ending with a newline.
+ */
+export function serializeHtmlQA(questions) {
+  const blocks = questions.map(
+    (q) =>
+      `<section class="question" data-marks="${q.marks}">\n  <h2>${escapeHtml(q.question)}</h2>\n  <div class="answer">\n${q.answerHtml}\n  </div>\n</section>`
+  );
+  return `${blocks.join("\n\n")}\n`;
 }
