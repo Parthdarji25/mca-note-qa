@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Format guide · MCA Notes Admin</title>
+  <meta name="description" content="How to write Q&amp;A files in Markdown or HTML, the file naming rules, and downloadable templates.">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body class="admin">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="admin-header" id="admin-header"></header>
+
+  <main id="main" class="container admin-main">
+    <h1 class="admin-title">Format guide</h1>
+    <p class="admin-lead">Every chapter is one file, written either as Markdown or as HTML. Marks are always 5 or 10. Questions are numbered Q1, Q2, Q3 in order.</p>
+
+    <div class="tabs" role="tablist" aria-label="File format">
+      <button class="tab" type="button" role="tab" id="tab-md" aria-controls="panel-md" aria-selected="true">Markdown (.md)</button>
+      <button class="tab" type="button" role="tab" id="tab-html" aria-controls="panel-html" aria-selected="false">HTML (.html)</button>
+    </div>
+
+    <!-- ===================== Markdown ===================== -->
+    <section id="panel-md" role="tabpanel" aria-labelledby="tab-md" class="guide-panel">
+      <h2>Example file</h2>
+      <pre class="code-panel" tabindex="0" aria-label="Markdown example file"><code>## Q1. What is cryptography? Explain its goals.
+Marks: 5
+
+**Cryptography** protects information by turning it into cipher text.
+
+- **Confidentiality** – only authorised people can read it.
+- **Integrity** – it has not been changed.
+
+&gt; **Remember:** the goals are C-I-A-N.
+
+## Q2. Differentiate between symmetric and asymmetric cryptography.
+Marks: 10
+
+### Comparison
+
+| Point | Symmetric | Asymmetric |
+|---|---|---|
+| Keys | One shared key | Public + private pair |
+| Speed | Fast | Slow |
+
+```python
+print("code blocks keep their spacing")
+```
+
+![Key exchange](images/ch02-key-exchange.png)
+
+Read more on [Wikipedia](https://en.wikipedia.org/wiki/Cryptography).</code></pre>
+
+      <h2>Syntax reference</h2>
+      <div class="table-wrap">
+        <table class="data-table guide-table">
+          <thead><tr><th scope="col">Element</th><th scope="col">You write</th><th scope="col">Notes</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Question</th><td><code>## Q1. Your question?</code></td><td>One line. Must start with <code>## Q</code>, a number and a full stop. Numbers are reassigned by position, so gaps are fixed on save.</td></tr>
+            <tr><th scope="row">Marks</th><td><code>Marks: 5</code></td><td>Must be the first non-empty line after the question. Only <code>5</code> or <code>10</code>.</td></tr>
+            <tr><th scope="row">Answer</th><td>Everything after the marks line</td><td>Ends at the next <code>## Q…</code> line.</td></tr>
+            <tr><th scope="row">Sub-heading</th><td><code>### Heading</code></td><td>Use <code>###</code> and <code>####</code> only inside answers.</td></tr>
+            <tr><th scope="row">Bold, italic, code</th><td><code>**bold**</code> <code>*italic*</code> <code>`code`</code></td><td></td></tr>
+            <tr><th scope="row">Bullet list</th><td><code>- item</code></td><td>Indent by two spaces for a nested list.</td></tr>
+            <tr><th scope="row">Numbered list</th><td><code>1. step</code></td><td></td></tr>
+            <tr><th scope="row">Table</th><td><code>| A | B |</code> then <code>|---|---|</code></td><td>Leave a blank line before the table.</td></tr>
+            <tr><th scope="row">Code block</th><td>Three backticks, code, three backticks</td><td>Add a language after the first fence if you like.</td></tr>
+            <tr><th scope="row">Image</th><td><code>![alt](images/ch02-name.png)</code></td><td>Path is relative to the chapter file. Use <em>Upload image</em> in the editor to get the right name.</td></tr>
+            <tr><th scope="row">Link</th><td><code>[text](https://example.com)</code></td><td>External links open in a new tab.</td></tr>
+            <tr><th scope="row">Remember box</th><td><code>&gt; **Remember:** text</code></td><td>Shown as a highlighted note. Must start with <code>**Remember:**</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===================== HTML ===================== -->
+    <section id="panel-html" role="tabpanel" aria-labelledby="tab-html" class="guide-panel" hidden>
+      <h2>Example file</h2>
+      <pre class="code-panel" tabindex="0" aria-label="HTML example file"><code>&lt;section class="question" data-marks="5"&gt;
+  &lt;h2&gt;What is cryptography? Explain its goals.&lt;/h2&gt;
+  &lt;div class="answer"&gt;
+    &lt;p&gt;&lt;strong&gt;Cryptography&lt;/strong&gt; protects information.&lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Confidentiality&lt;/li&gt;
+      &lt;li&gt;Integrity&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;blockquote class="note"&gt;&lt;strong&gt;Remember:&lt;/strong&gt; C-I-A-N.&lt;/blockquote&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;section class="question" data-marks="10"&gt;
+  &lt;h2&gt;Differentiate between symmetric and asymmetric cryptography.&lt;/h2&gt;
+  &lt;div class="answer"&gt;
+    &lt;h3&gt;Comparison&lt;/h3&gt;
+    &lt;table&gt;
+      &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Point&lt;/th&gt;&lt;th&gt;Symmetric&lt;/th&gt;&lt;th&gt;Asymmetric&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+      &lt;tbody&gt;&lt;tr&gt;&lt;td&gt;Keys&lt;/td&gt;&lt;td&gt;One&lt;/td&gt;&lt;td&gt;Two&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
+    &lt;/table&gt;
+    &lt;pre&gt;&lt;code&gt;print("hello")&lt;/code&gt;&lt;/pre&gt;
+    &lt;p&gt;&lt;img src="images/ch02-key-exchange.png" alt="Key exchange"&gt;&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+
+      <h2>Syntax reference</h2>
+      <div class="table-wrap">
+        <table class="data-table guide-table">
+          <thead><tr><th scope="col">Element</th><th scope="col">You write</th><th scope="col">Notes</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Question</th><td><code>&lt;section class="question" data-marks="5"&gt;</code></td><td>One section per question. <code>data-marks</code> must be <code>5</code> or <code>10</code>.</td></tr>
+            <tr><th scope="row">Question text</th><td><code>&lt;h2&gt;…&lt;/h2&gt;</code></td><td>The first <code>h2</code> in the section.</td></tr>
+            <tr><th scope="row">Answer</th><td><code>&lt;div class="answer"&gt;…&lt;/div&gt;</code></td><td>Everything the reader sees under the question.</td></tr>
+            <tr><th scope="row">Text</th><td><code>p h3 h4 strong em b i u br sup sub hr</code></td><td>Use <code>h3</code> or <code>h4</code> for headings inside answers.</td></tr>
+            <tr><th scope="row">Lists</th><td><code>ul ol li</code></td><td></td></tr>
+            <tr><th scope="row">Table</th><td><code>table thead tbody tr th td</code></td><td></td></tr>
+            <tr><th scope="row">Code</th><td><code>&lt;pre&gt;&lt;code&gt;…&lt;/code&gt;&lt;/pre&gt;</code></td><td>Escape <code>&lt;</code> as <code>&amp;lt;</code> inside code.</td></tr>
+            <tr><th scope="row">Image</th><td><code>&lt;img src="images/ch02-name.png" alt="…"&gt;</code></td><td>Path is relative to the chapter file.</td></tr>
+            <tr><th scope="row">Link</th><td><code>&lt;a href="https://…"&gt;text&lt;/a&gt;</code></td><td>External links open in a new tab.</td></tr>
+            <tr><th scope="row">Remember box</th><td><code>&lt;blockquote class="note"&gt;…&lt;/blockquote&gt;</code></td><td>Shown as a highlighted note.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel removed-box">
+        <h2>Removed from .html files</h2>
+        <p>Uploaded files are cleaned before they are saved, and again every time a page is shown. The editor lists anything it will remove.</p>
+        <ul class="rule-list">
+          <li><code>&lt;script&gt;</code>, <code>&lt;style&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;form&gt;</code>, <code>&lt;object&gt;</code> and <code>&lt;embed&gt;</code> elements.</li>
+          <li>Inline <code>style="…"</code> attributes.</li>
+          <li>Every event attribute: <code>onclick</code>, <code>onload</code>, <code>onerror</code> and all other <code>on…</code> attributes.</li>
+          <li><code>javascript:</code> links.</li>
+          <li>Any tag not in the table above (for example <code>div</code>, <code>span</code>, <code>h1</code>, <code>h2</code>, <code>h5</code> inside an answer). The text inside is kept; the tag is dropped.</li>
+          <li>Classes, ids and data attributes, except <code>class="note"</code> on a blockquote.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== Naming ===================== -->
+    <section id="naming" class="panel guide-section" aria-labelledby="naming-title">
+      <h2 id="naming-title">File naming rules</h2>
+      <p>You never type a path. The editor builds it from the semester, subject, chapter number and title:</p>
+      <pre class="code-panel" tabindex="0" aria-label="Path pattern"><code>qa/sem-&lt;N&gt;/&lt;subject-slug&gt;/ch&lt;NN&gt;-&lt;chapter-slug&gt;.md    (or .html)
+qa/sem-&lt;N&gt;/&lt;subject-slug&gt;/images/ch&lt;NN&gt;-&lt;image-name&gt;.png</code></pre>
+      <ul class="rule-list">
+        <li>Lowercase; words joined with single hyphens.</li>
+        <li>The chapter number is always two digits: <code>ch01</code> to <code>ch14</code>.</li>
+        <li><code>&amp;</code> becomes <code>and</code>. Every other run of characters that are not <code>a-z</code> or <code>0-9</code> becomes one hyphen. Hyphens at the ends are removed.</li>
+        <li>Exactly one Q&amp;A file per chapter: <code>.md</code> or <code>.html</code>, never both. Switching format deletes the old file in the same commit.</li>
+      </ul>
+      <div class="table-wrap">
+        <table class="data-table guide-table">
+          <thead><tr><th scope="col">Title</th><th scope="col">Slug</th></tr></thead>
+          <tbody>
+            <tr><td>Authentication – I</td><td><code>authentication-i</code></td></tr>
+            <tr><td>Distributed Systems &amp; Cloud Computing</td><td><code>distributed-systems-cloud-computing</code></td></tr>
+            <tr><td>Stream Cipher and Block Cipher</td><td><code>stream-cipher-and-block-cipher</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===================== Templates ===================== -->
+    <section id="templates" class="panel guide-section" aria-labelledby="templates-title">
+      <h2 id="templates-title">Download templates</h2>
+      <p>Start from a template, fill it in, then upload it in the editor (HTML) or paste the questions in (Markdown).</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="../templates/qa-template.md" download>qa-template.md</a>
+        <a class="btn" href="../templates/qa-template.html" download>qa-template.html</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="admin-footer" id="admin-footer"></footer>
+  <script type="module" src="../assets/js/admin/guide.js"></script>
+</body>
+</html>

@@ -205,3 +205,30 @@ select.input { padding-right: 8px; }
 #notices .banner { margin-top: 12px; }
 #notices ul { margin: 4px 0 0; padding-left: 20px; }
 .editor-grid { align-items: start; }
+
+/* ---------- Guide ---------- */
+
+.guide-panel { margin-top: 24px; }
+.guide-panel h2, .guide-section h2 { margin-bottom: 12px; font-size: 22px; }
+.guide-panel > h2:not(:first-child) { margin-top: 28px; }
+.guide-section { margin-top: 28px; }
+.guide-section p { margin-bottom: 12px; color: var(--text-2); }
+.guide-section .rule-list { margin-bottom: 16px; font-size: 15px; }
+.code-panel {
+  margin: 0;
+  padding: 20px;
+  overflow-x: auto;
+  background: var(--code-bg);
+  color: var(--code-text);
+  border-radius: var(--radius-lg);
+  font: 400 14px/1.7 var(--font-mono);
+  tab-size: 2;
+}
+.code-panel code { font: inherit; }
+.guide-table th[scope="row"] { background: transparent; text-transform: none; letter-spacing: 0; font-size: 15px; width: 160px; }
+.guide-table td code, .rule-list code { padding: 1px 5px; background: var(--line-soft); border-radius: 4px; font-size: 13px; color: var(--ink); white-space: pre-wrap; }
+.guide-table { min-width: 720px; }
+.removed-box { margin-top: 24px; background: var(--warn-bg); border-color: var(--warn-line); }
+.removed-box h2 { font-size: 20px; margin-bottom: 8px; }
+.removed-box p { margin-bottom: 10px; color: var(--text); }
+.removed-box .rule-list code { background: rgba(255, 255, 255, 0.7); }
