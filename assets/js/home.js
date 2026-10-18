@@ -2,6 +2,7 @@
 
 import { loadSubjects, pad2 } from "./data.js";
 import { getLast, subjectProgress } from "./progress.js";
+import { el, applyColor, plural } from "./dom.js";
 
 const SUMMARIES = {
   "information-security": "Cryptography, authentication, certificates, web security, firewalls and database security.",
@@ -15,23 +16,7 @@ const filterButtons = [...document.querySelectorAll(".filter .chip-btn")];
 
 let subjects = [];
 let semester = "all";
-let query = "";
-
-/** Create an element with optional class and text. */
-function el(tag, className, text) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
-
-function applyColor(node, color) {
-  node.style.setProperty("--accent", color.accent);
-  node.style.setProperty("--tint", color.tint);
-  node.style.setProperty("--accent-dark", color.dark);
-}
-
-const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+let query = (new URLSearchParams(location.search).get("q") || "").trim().toLowerCase();
 
 /** "6 modules · 12 chapters", "6 units · 12 chapters" or "14 chapters". */
 function metaLine(subject) {
@@ -141,6 +126,8 @@ async function init() {
   renderContinue();
   applyFilters();
 }
+
+searchInput.value = new URLSearchParams(location.search).get("q") || "";
 
 for (const button of filterButtons) {
   button.addEventListener("click", () => {

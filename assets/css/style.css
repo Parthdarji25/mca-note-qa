@@ -471,10 +471,9 @@ code, pre, .mono { font-family: var(--font-mono); }
 }
 .subject-hero h1 { color: #fff; font-size: clamp(30px, 5.5vw, 48px); line-height: 1.1; margin-top: 16px; }
 .breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
-.breadcrumb a { display: inline-flex; align-items: center; min-height: 32px; color: #fff; }
+.breadcrumb a { display: inline-flex; align-items: center; min-height: var(--touch); color: #fff; }
 .breadcrumb li + li::before { content: "/"; margin-right: 8px; opacity: 0.7; }
-.breadcrumb [aria-current] { opacity: 0.9; }
-.hero-stats { margin-top: 12px; font: 500 14px/1.5 var(--font-mono); opacity: 0.95; }
+.hero-stats { margin-top: 12px; font: 500 14px/1.5 var(--font-mono); }
 .subject-hero .hero-actions { margin-top: 24px; }
 .btn-on-accent { background: #fff; border-color: #fff; color: var(--accent-dark); }
 .btn-on-accent:hover { background: var(--tint); }

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chapter · MCA Notes</title>
   <meta name="description" content="Read the questions and answers for one MCA chapter.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
@@ -23,10 +24,16 @@
         <a href="index.html">Home</a>
         <a href="index.html#subjects">Subjects</a>
       </nav>
+      <form class="site-search" role="search" action="index.html" method="get">
+        <label class="sr-only" for="search">Search subjects and chapters</label>
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="input" id="search" name="q" type="search" placeholder="Search subjects" autocomplete="off">
+      </form>
     </div>
   </header>
 
   <main id="main">
+    <noscript><p class="container" style="padding-block: 48px">This site needs JavaScript to load the questions. Please enable it and reload.</p></noscript>
     <p class="container" style="padding-block: 48px">Loading…</p>
   </main>
 

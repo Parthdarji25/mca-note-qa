@@ -2,6 +2,7 @@
 
 import { loadSubjects, pad2, REPO, BRANCH } from "./data.js";
 import { chapterStatus, getLast, resetSubject, subjectProgress } from "./progress.js";
+import { el, applyColor, plural } from "./dom.js";
 
 const main = document.getElementById("main");
 const searchInput = document.getElementById("search");
@@ -11,21 +12,6 @@ const STATUS_LABEL = { done: "Done", progress: "In progress", todo: "Not started
 let subjects = [];
 let subject = null;
 
-/** Create an element with optional class and text. */
-function el(tag, className, text) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
-
-function applyColor(node, color) {
-  node.style.setProperty("--accent", color.accent);
-  node.style.setProperty("--tint", color.tint);
-  node.style.setProperty("--accent-dark", color.dark);
-}
-
-const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const allChapters = (s) => s.groups.flatMap((g) => g.chapters);
 const chapterUrl = (s, c) => `chapter.html?s=${encodeURIComponent(s.id)}&ch=${pad2(c.no)}`;
 
