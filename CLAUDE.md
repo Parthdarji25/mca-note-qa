@@ -228,7 +228,6 @@ The footer has: "made by [YOUR NAME]" · "Hosted free on GitHub Pages" · Edit o
   - a status label
   - "6 Qs" (or "—" when there is no file yet)
 - Side column:
-  - "Your progress" card with a Reset button
   - "Resources" card with **only** a "Download all Q&A (.zip)" button. It zips that subject's `qa/` folder with JSZip.
   - "Other subjects" links
 

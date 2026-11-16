@@ -94,16 +94,3 @@ export function subjectProgress(subject) {
   const total = chapters.length;
   return { done, total, percent: total ? Math.round((done / total) * 100) : 0 };
 }
-
-/**
- * Forget all progress for one subject.
- * @param {string} subjectId
- */
-export function resetSubject(subjectId) {
-  const data = read();
-  for (const key of Object.keys(data.chapters)) {
-    if (key.startsWith(`${subjectId}/`)) delete data.chapters[key];
-  }
-  if (data.last && data.last.s === subjectId) data.last = null;
-  write(data);
-}

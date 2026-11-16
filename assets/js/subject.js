@@ -1,7 +1,7 @@
-// Subject page: chapter list, progress, and the "Download all" zip.
+// Subject page: chapter list and the "Download all" zip.
 
 import { loadSubjects, pad2, REPO, BRANCH } from "./data.js";
-import { chapterStatus, getLast, resetSubject, subjectProgress } from "./progress.js";
+import { chapterStatus, getLast } from "./progress.js";
 import { el, applyColor, plural } from "./dom.js";
 
 const main = document.getElementById("main");
@@ -135,36 +135,6 @@ function buildChapterList() {
   return wrap;
 }
 
-function buildProgressCard() {
-  const { done, total, percent } = subjectProgress(subject);
-  const card = el("section", "card side-card");
-  card.append(el("h2", "", "Your progress"));
-
-  const label = el("div", "progress-label");
-  label.append(el("span", "", "Chapters done"), el("span", "mono", `${done} of ${total}`));
-  const bar = el("div", "progress");
-  bar.setAttribute("role", "progressbar");
-  bar.setAttribute("aria-label", `${subject.name} progress`);
-  bar.setAttribute("aria-valuemin", "0");
-  bar.setAttribute("aria-valuemax", String(total));
-  bar.setAttribute("aria-valuenow", String(done));
-  const fill = el("span");
-  fill.style.width = `${percent}%`;
-  bar.append(fill);
-
-  const reset = el("button", "btn btn-sm btn-danger btn-block", "Reset progress");
-  reset.type = "button";
-  reset.style.marginTop = "16px";
-  reset.addEventListener("click", () => {
-    if (!window.confirm(`Reset your progress for ${subject.name}? This cannot be undone.`)) return;
-    resetSubject(subject.id);
-    render();
-  });
-
-  card.append(label, bar, reset);
-  return card;
-}
-
 function buildResourcesCard() {
   const card = el("section", "card side-card");
   card.append(el("h2", "", "Resources"));
@@ -247,7 +217,7 @@ function render() {
   const layout = el("div", "container subject-layout");
   const side = el("aside", "side");
   side.setAttribute("aria-label", "Subject sidebar");
-  side.append(buildProgressCard(), buildResourcesCard(), buildOthersCard());
+  side.append(buildResourcesCard(), buildOthersCard());
   layout.append(buildChapterList(), side);
   main.replaceChildren(buildHero(), layout);
 }
