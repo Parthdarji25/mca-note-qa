@@ -332,18 +332,6 @@ function buildToolbar(redraw) {
   return bar;
 }
 
-function buildProgressCard() {
-  const card = el("section", "card side-card");
-  card.append(el("h2", "", "Your progress"));
-  const label = el("div", "progress-label");
-  label.append(el("span", "", "Questions seen"));
-  const text = el("span", "mono");
-  progressTexts.push(text);
-  label.append(text);
-  card.append(label, buildProgressBar(`${subject.name} progress`));
-  return card;
-}
-
 function buildJumpCard(jumpList) {
   const card = el("section", "card side-card");
   card.append(el("h2", "", "Jump to"), jumpList);
@@ -465,7 +453,7 @@ function render(result) {
   col.append(notices, toolbar, list);
   const side = el("aside", "side");
   side.setAttribute("aria-label", "Subject sidebar");
-  side.append(buildProgressCard(), buildJumpCard(jumpList), buildResourcesCard(), buildSourceCard(), buildOthersCard());
+  side.append(buildJumpCard(jumpList), buildResourcesCard(), buildSourceCard(), buildOthersCard());
   const layout = el("div", "container subject-layout");
   layout.append(col, side);
 

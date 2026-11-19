@@ -222,7 +222,7 @@ The footer has: "made by [YOUR NAME]" · "Hosted free on GitHub Pages" · Edit o
   - answer at 17px, line-height 1.75, max 70ch
   - a "Show answer / Hide answer" button with `aria-expanded`
 - The first two answers are open by default (or the one in a `#q5` link).
-- Side column: "Your progress" card (questions seen, no reset button); "Jump to" grid of question numbers (seen ones tinted); "Resources" card with **only** a "Download all Q&A (.zip)" button (JSZip, the subject's Q&A file); "Source file" path with an "Edit on GitHub" link; "Other subjects" links.
+- Side column: "Jump to" grid of question numbers (seen ones tinted); "Resources" card with **only** a "Download all Q&A (.zip)" button (JSZip, the subject's Q&A file); "Source file" path with an "Edit on GitHub" link; "Other subjects" links.
 - Progress: opening an answer marks that question as seen (stored per subject under a hash of the question text, so it survives reordering). Seen keys of questions that no longer exist are dropped.
 - Responsive:
   - 900px and up: list + 320px side column
