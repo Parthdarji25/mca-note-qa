@@ -6,13 +6,13 @@ import { REPO, BRANCH } from "../data.js";
 
 const NAV = [
   ["index.html", "Connect"],
-  ["chapters.html", "Chapters"],
+  ["questions.html", "Questions"],
   ["guide.html", "Format guide"]
 ];
 
 /**
  * Fill #admin-header and #admin-footer.
- * @param {"index"|"chapters"|"editor"|"guide"} active Current page, for aria-current.
+ * @param {"index"|"questions"|"editor"|"guide"} active Current page, for aria-current.
  */
 export function renderShell(active) {
   const session = getSession();

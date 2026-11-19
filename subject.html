@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Subject · MCA Notes</title>
-  <meta name="description" content="Chapter list and progress for one MCA subject.">
+  <meta name="description" content="Questions and answers for one MCA subject. Filter by marks, year asked and chapter.">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,15 +20,18 @@
         <span class="brand-mark" aria-hidden="true">#</span>
         <span class="brand-name">MCA Notes</span>
       </a>
-      <nav class="site-nav" aria-label="Main">
+      <nav class="site-nav" id="site-nav" aria-label="Main">
         <a href="index.html">Home</a>
         <a href="index.html#subjects">Subjects</a>
       </nav>
       <form class="site-search" role="search" onsubmit="return false">
-        <label class="sr-only" for="search">Search chapters</label>
+        <label class="sr-only" for="search">Search questions</label>
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input class="input" id="search" type="search" placeholder="Search chapters" autocomplete="off">
+        <input class="input" id="search" type="search" placeholder="Search questions" autocomplete="off">
       </form>
+      <button class="nav-toggle" type="button" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
     </div>
   </header>
 
@@ -50,6 +53,9 @@
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous"></script>
+  <script type="module" src="assets/js/nav.js"></script>
   <script type="module" src="assets/js/subject.js"></script>
 </body>
 </html>

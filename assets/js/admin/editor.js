@@ -1,49 +1,53 @@
-// admin/editor.html: write or upload a chapter's Q&A and commit it with subjects.json.
+// admin/editor.html: add or edit one question, or import an .html file of questions,
+// and commit the subject's question file with data/subjects.json.
 
 import { requireAuth } from "./auth.js";
-import { getFile, commitChanges, GitHubError } from "./github.js";
-import { loadRemoteSubjects, serializeSubjects, findChapter, SUBJECTS_PATH } from "./store.js";
+import { commitChanges, GitHubError } from "./github.js";
+import { loadRemoteSubjects, loadRemoteBank, planBankChange, serializeBank, serializeSubjects, chaptersIn, yearsIn, SUBJECTS_PATH } from "./store.js";
 import { renderShell, showPushedBanner, showErrorBanner } from "./shell.js";
-import { parseMarkdownQA, parseHtmlQA, serializeMarkdownQA, serializeHtmlQA } from "../qa-parser.js";
-import { chapterPath, pad2, slugify } from "../data.js";
-import { el, applyColor, icon } from "../dom.js";
+import { parseHtmlQA, parseYears, normalizeChapter, htmlAnswerToMarkdown, MIN_YEAR, MAX_YEAR } from "../qa-parser.js";
+import { qaPath, slugify } from "../data.js";
+import { el, applyColor, plural } from "../dom.js";
 
 const session = requireAuth();
 
 const $ = (id) => document.getElementById(id);
 const semesterEl = $("semester");
 const subjectEl = $("subject");
-const groupEl = $("group");
-const noEl = $("chno");
-const titleEl = $("chtitle");
+const chapterEl = $("chapter");
+const yearsEl = $("years");
+const textEl = $("q-text");
+const marksEl = $("q-marks");
+const positionEl = $("q-position");
+const answerEl = $("q-answer");
 const messageEl = $("message");
-const cardsEl = $("cards");
 
 const MAX_IMAGE = 2 * 1024 * 1024;
 const MAX_HTML = 1024 * 1024;
 const IMAGE_TYPES = { "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/webp": "webp" };
 
-/** Everything the page knows. `orig` is what the repository holds right now. */
+/** Everything the page knows. `bank` is what the repository holds right now for the chosen subject. */
 const st = {
   data: null, // subjects.json from the repository
-  isNew: true, // chapter not yet in the syllabus
-  orig: { path: null, text: null }, // current Q&A file in the repo, if any
+  bank: { path: null, questions: [], notes: [] },
+  bankLoading: false,
+  index: null, // 0-based position of the question being edited; null when adding
+  orig: null, // the question as it was loaded, to detect edits made by someone else
   mode: "write", // "write" | "upload"
-  questions: [], // write mode: { id, question, marks, answer }
-  upload: null, // upload mode: { name, size, text, fromRepo, commit, preview }
+  upload: null, // import mode: { name, size, text, commit, preview }
   images: [], // pending uploads: { path, ref, base64, size }
-  nextId: 1,
   dirty: false,
   messageEdited: false,
   showProblems: false,
-  lastTextarea: null,
+  positionTouched: false,
+  answerFocused: false,
   parseNotes: []
 };
 
 /* ---------- Details form ---------- */
 
 const subjectsOf = (semester) => st.data.subjects.filter((s) => String(s.semester) === String(semester));
-const currentSubject = () => st.data.subjects.find((s) => s.id === subjectEl.value) || null;
+const currentSubject = () => (st.data ? st.data.subjects.find((s) => s.id === subjectEl.value) : null) || null;
 
 function fillSelect(select, options, selected) {
   select.replaceChildren(
@@ -56,142 +60,126 @@ function fillSelect(select, options, selected) {
   if (selected !== undefined) select.value = String(selected);
 }
 
-function fillGroups(subject, selectedIndex = 0) {
-  fillSelect(
-    groupEl,
-    subject.groups.map((g, i) => [String(i), g.label ? `${g.label} · ${g.name}` : g.name]),
-    selectedIndex
-  );
-}
-
-function onSubjectChanged() {
-  const subject = currentSubject();
-  if (!subject) return;
-  applyColor(document.documentElement, subject.color);
-  fillGroups(subject);
-}
-
-function details() {
-  const subject = currentSubject();
-  const no = Number(noEl.value);
-  return {
-    subject,
-    no: Number.isInteger(no) && no >= 1 && no <= 99 ? no : null,
-    title: titleEl.value.trim(),
-    groupIndex: Number(groupEl.value) || 0
-  };
-}
-
 function lockFields(locked) {
-  for (const node of [semesterEl, subjectEl, groupEl, noEl]) node.disabled = locked;
+  semesterEl.disabled = locked;
+  subjectEl.disabled = locked;
   $("lock-hint").hidden = !locked;
 }
 
-/* ---------- Plan: what would be committed ---------- */
-
-const contentExt = () => (st.mode === "write" ? "md" : "html");
-
-/** The text of the Q&A file for the current mode, or null if there is nothing valid yet. */
-function currentContent() {
-  if (st.mode === "write") return serializeMarkdownQA(st.questions.map((q) => ({ ...q, answerMd: q.answer })));
-  if (!st.upload) return null;
-  return st.upload.fromRepo ? st.upload.text : serializeHtmlQA(st.upload.commit.questions);
+/** The question as typed in the form. */
+function draft() {
+  return {
+    question: textEl.value.replace(/\s+/g, " ").trim(),
+    marks: Number(marksEl.value),
+    chapter: normalizeChapter(chapterEl.value),
+    years: parseYears(yearsEl.value).years,
+    answer: answerEl.value
+  };
 }
 
-function questionCount() {
-  if (st.mode === "write") return st.questions.length;
-  return st.upload ? st.upload.commit.questions.length : 0;
+/** Highest allowed value of "Question no.". */
+const maxPosition = () => (st.index === null ? st.bank.questions.length + 1 : st.bank.questions.length);
+
+/* ---------- Plan: what would be committed ---------- */
+
+/**
+ * The question list after this change, built on `base` (the subject's current questions).
+ * @param {Array<object>} base
+ * @returns {{list: Array<object>, position: ?number}} `position` is where the written question lands (1-based).
+ */
+function buildList(base) {
+  if (st.mode === "write") {
+    const list = base.slice();
+    if (st.index !== null) list.splice(st.index, 1);
+    const wanted = Number(positionEl.value);
+    const position = Number.isInteger(wanted) && wanted >= 1 ? Math.min(wanted, list.length + 1) : list.length + 1;
+    list.splice(position - 1, 0, draft());
+    return { list, position };
+  }
+  if (!st.upload) return { list: base.slice(), position: null };
+  const defaults = { chapter: normalizeChapter(chapterEl.value), years: parseYears(yearsEl.value).years };
+  const imported = st.upload.commit.questions.map((q) => ({
+    question: q.question,
+    marks: q.marks,
+    chapter: q.chapter || defaults.chapter,
+    years: q.years.length ? q.years : defaults.years,
+    answer: htmlAnswerToMarkdown(q.answerHtml)
+  }));
+  return { list: base.concat(imported), position: null };
 }
 
 /** Check the form. Returns a list of problems that block the commit. */
-function validate(d) {
+function validate() {
   const errors = [];
-  if (!d.subject) errors.push("Choose a subject.");
-  if (d.no === null) errors.push("Chapter number must be a whole number from 1 to 99.");
-  else if (st.isNew && d.subject && findChapter(d.subject, d.no)) errors.push(`Chapter ${pad2(d.no)} already exists in this subject. Pick another number, or edit it from the chapters list.`);
-  if (!d.title) errors.push("Enter a chapter title.");
+  if (!currentSubject()) errors.push("Choose a subject.");
+  if (st.bankLoading) errors.push("The subject's questions are still loading. Try again in a moment.");
+
+  const years = parseYears(yearsEl.value);
+  if (years.invalid.length) errors.push(`These are not valid years: ${years.invalid.join(", ")}. Use four digits between ${MIN_YEAR} and ${MAX_YEAR}.`);
 
   if (st.mode === "write") {
-    if (!st.questions.length) errors.push("Add at least one question.");
-    st.questions.forEach((q, i) => {
-      const n = i + 1;
-      if (!q.question.trim()) errors.push(`Question ${n} has no question text.`);
-      if (!q.answer.trim()) errors.push(`Question ${n} has no answer.`);
-      if (q.marks !== 5 && q.marks !== 10) errors.push(`Question ${n}: marks must be 5 or 10.`);
-      if (/^## Q\d+\.\s/m.test(q.answer)) errors.push(`Question ${n}: the answer contains a line that starts like a new question ("## Q1. …"). Reword it.`);
-    });
+    const d = draft();
+    if (!d.question) errors.push("Enter the question.");
+    if (!d.answer.trim()) errors.push("Write the answer.");
+    if (d.marks !== 5 && d.marks !== 10) errors.push("Marks must be 5 or 10.");
+    if (/^## Q\d+\.\s/m.test(d.answer)) errors.push('The answer contains a line that starts like a new question ("## Q1. …"). Reword it.');
+    if (positionEl.value !== "") {
+      const n = Number(positionEl.value);
+      if (!Number.isInteger(n) || n < 1 || n > maxPosition()) errors.push(`Question no. must be a whole number from 1 to ${maxPosition()}.`);
+    }
   } else if (!st.upload) {
-    errors.push("Choose an .html file to upload.");
+    errors.push("Choose an .html file to import.");
   } else {
-    if (st.upload.commit.errors.length) errors.push(...st.upload.commit.errors);
-    if (!st.upload.commit.questions.length && !st.upload.commit.errors.length) errors.push("The uploaded file has no questions.");
+    errors.push(...st.upload.commit.errors);
+    if (!st.upload.commit.questions.length && !st.upload.commit.errors.length) errors.push("The file has no questions.");
   }
   return errors;
 }
 
-/** Apply this chapter's data to a subjects.json object (mutates `data`). */
-function applyToSubjects(data, d, file, questions) {
-  const subject = data.subjects.find((s) => s.id === d.subject.id);
-  const existing = findChapter(subject, d.no);
-  if (existing) {
-    existing.title = d.title;
-    existing.file = file;
-    existing.questions = questions;
-  } else {
-    const group = subject.groups[d.groupIndex] || subject.groups[0];
-    group.chapters.push({ no: d.no, title: d.title, file, questions });
-    group.chapters.sort((a, b) => a.no - b.no);
-  }
+/** Is there anything worth planning a commit for yet? */
+function hasContent() {
+  if (st.images.length) return true;
+  if (st.mode === "upload") return Boolean(st.upload);
+  return st.index !== null || textEl.value.trim() !== "" || answerEl.value.trim() !== "";
 }
 
 function computePlan() {
-  const d = details();
-  const errors = validate(d);
-  const ready = d.subject && d.no !== null && d.title;
-  const ext = contentExt();
-  const path = ready ? chapterPath(d.subject, d.no, d.title, ext) : null;
-  const content = currentContent();
+  const errors = validate();
+  const subject = currentSubject();
   const files = [];
-  let writeQa = false;
+  let qaChanged = false;
+  let position = null;
 
-  if (path && content !== null) {
-    if (st.orig.path === path) {
-      if (st.orig.text !== content) {
-        files.push({ status: "M", path });
-        writeQa = true;
-      }
-    } else {
-      files.push({ status: "A", path });
-      writeQa = true;
-      if (st.orig.path) files.push({ status: "D", path: st.orig.path });
+  if (subject && hasContent()) {
+    const built = buildList(st.bank.questions);
+    position = built.position;
+    // Compare as Markdown, so a file that only differs in formatting is not reported as changed.
+    qaChanged = serializeBank(built.list) !== serializeBank(st.bank.questions);
+    if (qaChanged) {
+      const copy = structuredClone(st.data);
+      const change = planBankChange(copy, subject.id, st.bank.path, built.list);
+      if (change.path) files.push({ status: st.bank.path === change.path ? "M" : "A", path: change.path });
+      for (const path of change.delete) files.push({ status: "D", path });
+      if (serializeSubjects(copy) !== serializeSubjects(st.data)) files.push({ status: "M", path: SUBJECTS_PATH });
     }
   }
   for (const img of st.images) files.push({ status: "A", path: img.path });
-
-  let subjectsChanged = false;
-  if (path && ready && content !== null) {
-    const copy = structuredClone(st.data);
-    applyToSubjects(copy, d, path.split("/").pop(), questionCount());
-    subjectsChanged = serializeSubjects(copy) !== serializeSubjects(st.data);
-    if (subjectsChanged) files.push({ status: "M", path: SUBJECTS_PATH });
-  }
-  return { d, errors, path, content, files, writeQa, subjectsChanged };
+  return { errors, subject, files, qaChanged, position };
 }
 
 function defaultMessage(plan) {
-  const id = plan.d.subject ? plan.d.subject.id : "subject";
-  const ch = `ch${pad2(plan.d.no || 0)}`;
-  const qaChanged = plan.files.some((f) => f.path === plan.path);
-  if (!qaChanged && st.images.length) return `Add image: ${id} ${st.images[0].path.split("/").pop().replace(/\.[^.]+$/, "")}`;
-  if (st.mode === "upload") return `Upload Q&A (html): ${id} ${ch}`;
-  return `${st.orig.path ? "Update" : "Add"} Q&A: ${id} ${ch}`;
+  const id = plan.subject ? plan.subject.id : "subject";
+  if (!plan.qaChanged && st.images.length) return `Add image: ${id} ${st.images[0].path.split("/").pop().replace(/\.[^.]+$/, "")}`;
+  if (st.mode === "upload") return `Upload Q&A (html): ${id} (${plural(st.upload ? st.upload.commit.questions.length : 0, "question")})`;
+  if (st.index !== null) return `Update Q&A: ${id} Q${st.index + 1}`;
+  return `Add Q&A: ${id} Q${plan.position || st.bank.questions.length + 1}`;
 }
 
 /* ---------- Rendering the side panels ---------- */
 
 function refresh() {
   const plan = computePlan();
-  $("saves-to").textContent = plan.path || "— (fill in the subject, number and title)";
+  $("saves-to").textContent = plan.subject ? qaPath(plan.subject, "md") : "—";
 
   const list = $("files");
   if (!plan.files.length) list.replaceChildren(el("li", "muted", "No changes yet."));
@@ -199,7 +187,7 @@ function refresh() {
     list.replaceChildren(
       ...plan.files.map((f) => {
         const li = el("li");
-        li.append(el("span", `tag tag-${f.status}`, f.status), el("span", "", f.path));
+        li.append(el("span", `tag-status tag-${f.status}`, f.status), el("span", "", f.path));
         return li;
       })
     );
@@ -207,6 +195,7 @@ function refresh() {
 
   if (!st.messageEdited) messageEl.value = defaultMessage(plan);
   renderProblems(plan.errors);
+  syncYearChips();
   return plan;
 }
 
@@ -239,124 +228,81 @@ function markDirty() {
   refresh();
 }
 
-/* ---------- Write mode: question cards ---------- */
+/* ---------- Year quick-pick chips ---------- */
 
-function newQuestion(data = {}) {
-  return { id: st.nextId++, question: data.question || "", marks: data.marks || 5, answer: data.answer || "" };
-}
+let yearChips = [];
 
-function buildCard(q, i) {
-  const card = el("article", "editor-card");
-  const head = el("div", "editor-card-head");
-  head.append(el("h3", "", `Q${i + 1}`));
-  const actions = el("div", "card-actions");
-
-  const mk = (label, path, onClick, extra = "") => {
-    const b = el("button", `icon-btn ${extra}`);
+function renderYearChips() {
+  const thisYear = new Date().getFullYear();
+  const years = [...new Set([thisYear, thisYear - 1, thisYear - 2, ...yearsIn(st.bank.questions)])].sort((a, b) => b - a).slice(0, 8);
+  yearChips = years.map((y) => {
+    const b = el("button", "chip-btn", String(y));
     b.type = "button";
-    b.setAttribute("aria-label", `${label} (question ${i + 1})`);
-    b.title = label;
-    b.append(icon(path));
-    b.addEventListener("click", onClick);
+    b.dataset.year = String(y);
+    b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => {
+      const have = parseYears(yearsEl.value).years;
+      const next = have.includes(y) ? have.filter((v) => v !== y) : [...have, y].sort((a, b2) => a - b2);
+      yearsEl.value = next.join(", ");
+      markDirty();
+    });
     return b;
-  };
-  const up = mk("Move up", '<path d="m6 15 6-6 6 6"/>', () => move(i, -1, "up"));
-  const down = mk("Move down", '<path d="m6 9 6 6 6-6"/>', () => move(i, 1, "down"));
-  const del = mk("Delete question", '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', () => remove(i), "danger");
-  up.disabled = i === 0;
-  down.disabled = i === st.questions.length - 1;
-  up.dataset.act = "up";
-  down.dataset.act = "down";
-  actions.append(up, down, del);
-  head.append(actions);
-
-  const row = el("div", "question-row");
-  const qField = el("div", "field");
-  const qLabel = el("label", "", "Question");
-  qLabel.htmlFor = `q-text-${q.id}`;
-  const qInput = el("input", "input");
-  qInput.id = `q-text-${q.id}`;
-  qInput.type = "text";
-  qInput.value = q.question;
-  qInput.autocomplete = "off";
-  qInput.addEventListener("input", () => {
-    q.question = qInput.value;
-    markDirty();
   });
-  qField.append(qLabel, qInput);
+  $("year-chips").replaceChildren(...yearChips);
+}
 
-  const mField = el("div", "field");
-  const mLabel = el("label", "", "Marks");
-  mLabel.htmlFor = `q-marks-${q.id}`;
-  const mSelect = el("select", "input");
-  mSelect.id = `q-marks-${q.id}`;
-  for (const m of [5, 10]) {
-    const o = el("option", "", String(m));
-    o.value = String(m);
-    mSelect.append(o);
+function syncYearChips() {
+  const have = new Set(parseYears(yearsEl.value).years);
+  for (const b of yearChips) b.setAttribute("aria-pressed", String(have.has(Number(b.dataset.year))));
+}
+
+/* ---------- The subject's questions ---------- */
+
+/** Update everything that depends on the loaded question list. */
+function afterBankLoaded() {
+  $("chapter-list").replaceChildren(
+    ...chaptersIn(st.bank.questions).map((c) => {
+      const o = el("option");
+      o.value = c;
+      return o;
+    })
+  );
+  renderYearChips();
+  positionEl.max = String(maxPosition());
+  if (st.index === null && !st.positionTouched) positionEl.value = String(st.bank.questions.length + 1);
+  $("position-hint").textContent =
+    st.index === null
+      ? `From 1 to ${maxPosition()}. New questions go to the end unless you change this; the others move down.`
+      : `Now Q${st.index + 1}. Change it to move the question; the ones in between shift.`;
+  renderNotices();
+  refresh();
+}
+
+async function loadBankFor(subject) {
+  st.bankLoading = true;
+  refresh();
+  try {
+    const bank = await loadRemoteBank(subject);
+    if (currentSubject() && currentSubject().id !== subject.id) return; // the choice changed while loading
+    st.bank = bank;
+    st.parseNotes = bank.notes.slice();
+  } catch (err) {
+    showErrorBanner($("banner"), err instanceof GitHubError ? err.message : `Could not load the questions: ${err.message}`);
+    st.bank = { path: null, questions: [], notes: [] };
+  } finally {
+    st.bankLoading = false;
   }
-  mSelect.value = String(q.marks);
-  mSelect.addEventListener("change", () => {
-    q.marks = Number(mSelect.value);
-    markDirty();
-  });
-  mField.append(mLabel, mSelect);
-  row.append(qField, mField);
-
-  const aField = el("div", "field");
-  const aLabel = el("label", "", "Answer (Markdown)");
-  aLabel.htmlFor = `q-answer-${q.id}`;
-  const aInput = el("textarea", "input");
-  aInput.id = `q-answer-${q.id}`;
-  aInput.value = q.answer;
-  aInput.spellcheck = true;
-  aInput.addEventListener("input", () => {
-    q.answer = aInput.value;
-    markDirty();
-  });
-  aInput.addEventListener("focus", () => (st.lastTextarea = { q, node: aInput }));
-  aField.append(aLabel, aInput);
-
-  card.append(head, row, aField);
-  return card;
+  afterBankLoaded();
 }
 
-function renderCards(focusSelector) {
-  cardsEl.replaceChildren(...st.questions.map(buildCard));
-  if (!st.questions.length) cardsEl.append(el("p", "muted", "No questions yet. Choose Add question to start."));
-  if (focusSelector) {
-    const target = cardsEl.querySelector(focusSelector);
-    if (target) target.focus();
-  }
+function onSubjectChanged() {
+  const subject = currentSubject();
+  if (!subject) return;
+  applyColor(document.documentElement, subject.color);
+  if (st.upload) st.upload.preview = parseHtmlQA(st.upload.text, previewBase());
+  if (st.mode === "upload") renderUpload();
+  loadBankFor(subject);
 }
-
-function move(i, delta, act) {
-  const j = i + delta;
-  if (j < 0 || j >= st.questions.length) return;
-  [st.questions[i], st.questions[j]] = [st.questions[j], st.questions[i]];
-  renderCards();
-  // Keep focus on the same kind of button, on the card the question moved to.
-  const card = cardsEl.children[j];
-  const button = card.querySelector(`[data-act="${act}"]:not([disabled])`) || card.querySelector(".icon-btn:not([disabled])");
-  if (button) button.focus();
-  markDirty();
-}
-
-function remove(i) {
-  const q = st.questions[i];
-  const label = q.question.trim() ? `"${q.question.trim().slice(0, 60)}"` : `question ${i + 1}`;
-  if (!window.confirm(`Delete ${label}?`)) return;
-  st.questions.splice(i, 1);
-  renderCards();
-  markDirty();
-}
-
-$("add-question").addEventListener("click", () => {
-  const q = newQuestion();
-  st.questions.push(q);
-  renderCards(`#q-text-${q.id}`);
-  markDirty();
-});
 
 /* ---------- Upload mode ---------- */
 
@@ -367,13 +313,12 @@ function previewBase() {
   return subject ? `../${subject.folder}` : "";
 }
 
-/** Parse an uploaded or loaded HTML file twice: clean for committing, resolved for the preview. */
-function buildUpload(name, text, fromRepo) {
+/** Parse an uploaded HTML file twice: clean for committing, with resolved image paths for the preview. */
+function buildUpload(name, text) {
   return {
     name,
     size: new Blob([text]).size,
     text,
-    fromRepo,
     commit: parseHtmlQA(text, ""),
     preview: parseHtmlQA(text, previewBase())
   };
@@ -390,7 +335,8 @@ function renderUpload() {
     return;
   }
   const u = st.upload;
-  info.textContent = `${u.name} · ${formatSize(u.size)} · ${u.commit.questions.length} ${u.commit.questions.length === 1 ? "question" : "questions"} found${u.fromRepo ? " · currently saved in the repository" : ""}`;
+  const found = u.commit.questions.length;
+  info.textContent = `${u.name} · ${formatSize(u.size)} · ${plural(found, "question")} found, to be added after the ${st.bank.questions.length} already in this subject`;
 
   const notes = [];
   if (u.commit.errors.length) notes.push(["banner-error", "Problems in this file:", u.commit.errors]);
@@ -410,7 +356,11 @@ function renderUpload() {
     const head = el("div", "q-head");
     head.append(el("span", "q-badge", `Q${q.no}`));
     const text = el("div", "q-text-wrap");
-    text.append(el("h2", "q-text", q.question), el("p", "q-marks", `${q.marks} marks`));
+    const meta = el("div", "q-meta");
+    meta.append(el("span", "q-marks", `${q.marks} marks`));
+    if (q.chapter) meta.append(el("span", "tag tag-chapter", q.chapter));
+    q.years.forEach((y) => meta.append(el("span", "tag tag-year", String(y))));
+    text.append(el("h2", "q-text", q.question), meta);
     head.append(text);
     const answer = el("div", "q-answer answer");
     answer.innerHTML = q.answerHtml; // sanitised by qa-parser.js
@@ -429,7 +379,7 @@ async function handleHtmlFile(file) {
     $("upload-info").textContent = `That file is ${formatSize(file.size)}. The limit is 1 MB.`;
     return;
   }
-  st.upload = buildUpload(file.name, await file.text(), false);
+  st.upload = buildUpload(file.name, await file.text());
   renderUpload();
   markDirty();
 }
@@ -462,6 +412,7 @@ function setMode(mode) {
   $("tab-upload").setAttribute("aria-selected", String(!write));
   $("write-pane").hidden = !write;
   $("upload-pane").hidden = write;
+  $("import-hint").hidden = write;
   if (!write) renderUpload();
   refresh();
 }
@@ -493,10 +444,10 @@ $("image-input").addEventListener("change", async (e) => {
   e.target.value = "";
   const status = $("image-status");
   if (!file) return;
-  const d = details();
+  const subject = currentSubject();
   const ext = IMAGE_TYPES[file.type];
-  if (!d.subject || d.no === null) {
-    status.textContent = "Fill in the subject and chapter number first, so the image gets the right name.";
+  if (!subject) {
+    status.textContent = "Choose a subject first, so the image is saved in the right folder.";
     return;
   }
   if (!ext) {
@@ -508,38 +459,55 @@ $("image-input").addEventListener("change", async (e) => {
     return;
   }
   const base = slugify(file.name.replace(/\.[^.]+$/, "")) || "image";
-  const ref = `images/ch${pad2(d.no)}-${base}.${ext}`;
-  const path = `${d.subject.folder}/${ref}`;
+  const ref = `images/${base}.${ext}`;
+  const path = `${subject.folder}/${ref}`;
   const base64 = await readBase64(file);
   st.images = st.images.filter((img) => img.path !== path).concat({ path, ref, base64, size: file.size });
 
-  if (st.mode === "write" && st.lastTextarea && st.lastTextarea.node.isConnected) {
-    const { q, node } = st.lastTextarea;
+  if (st.mode === "write") {
     const snippet = `![${base}](${ref})`;
-    const at = node.selectionStart ?? node.value.length;
-    node.value = `${node.value.slice(0, at)}${snippet}${node.value.slice(node.selectionEnd ?? at)}`;
-    q.answer = node.value;
+    const at = st.answerFocused ? answerEl.selectionStart : answerEl.value.length;
+    const end = st.answerFocused ? answerEl.selectionEnd : at;
+    const lead = !st.answerFocused && answerEl.value && !answerEl.value.endsWith("\n") ? "\n\n" : "";
+    answerEl.value = `${answerEl.value.slice(0, at)}${lead}${snippet}${answerEl.value.slice(end)}`;
     status.textContent = `Added ${ref} and inserted ${snippet} into the answer.`;
-  } else if (st.mode === "write") {
-    status.textContent = `Added ${ref}. Click inside an answer first to insert it there, or type ![${base}](${ref}).`;
   } else {
     status.textContent = `Added ${ref}. Use <img src="${ref}" alt="${base}"> in your HTML.`;
   }
   markDirty();
 });
 
-/* ---------- Commit and discard ---------- */
+/* ---------- Form events ---------- */
 
 messageEl.addEventListener("input", () => (st.messageEdited = true));
-for (const node of [semesterEl, subjectEl, groupEl, noEl, titleEl]) {
-  node.addEventListener("input", () => {
-    if (node === semesterEl) {
-      fillSelect(subjectEl, subjectsOf(semesterEl.value).map((s) => [s.id, s.name]));
-      onSubjectChanged();
-    } else if (node === subjectEl) onSubjectChanged();
-    if (st.mode === "upload" && st.upload && !st.upload.fromRepo) st.upload.preview = parseHtmlQA(st.upload.text, previewBase());
-    markDirty();
-  });
+answerEl.addEventListener("focus", () => (st.answerFocused = true));
+positionEl.addEventListener("input", () => (st.positionTouched = true));
+
+semesterEl.addEventListener("input", () => {
+  fillSelect(subjectEl, subjectsOf(semesterEl.value).map((s) => [s.id, s.name]));
+  onSubjectChanged();
+  markDirty();
+});
+subjectEl.addEventListener("input", () => {
+  onSubjectChanged();
+  markDirty();
+});
+for (const node of [chapterEl, yearsEl, textEl, marksEl, positionEl, answerEl]) node.addEventListener("input", markDirty);
+
+/* ---------- Commit and discard ---------- */
+
+/** Clear the form for the next question after a successful add, keeping marks, chapter and years. */
+function resetForNext() {
+  st.index = null;
+  st.orig = null;
+  st.positionTouched = false;
+  st.answerFocused = false;
+  textEl.value = "";
+  answerEl.value = "";
+  $("page-title").textContent = "Add question";
+  document.title = "Add question · MCA Notes Admin";
+  history.replaceState(null, "", `?s=${encodeURIComponent(currentSubject().id)}`);
+  afterBankLoaded();
 }
 
 $("commit-btn").addEventListener("click", async () => {
@@ -567,35 +535,66 @@ $("commit-btn").addEventListener("click", async () => {
   $("problems").hidden = true;
   $("banner").hidden = true;
   try {
+    // Re-read the repository so the commit builds on the newest copies.
     const fresh = await loadRemoteSubjects();
-    const d = plan.d;
-    const file = plan.path.split("/").pop();
-    const fresher = fresh.subjects.find((s) => s.id === d.subject.id);
-    if (st.isNew && findChapter(fresher, d.no)) throw new GitHubError(`Chapter ${pad2(d.no)} was added by someone else. Reload the page.`, 0);
-    applyToSubjects(fresh, d, file, questionCount());
+    const subject = fresh.subjects.find((s) => s.id === plan.subject.id);
+    if (!subject) throw new GitHubError("That subject no longer exists in subjects.json. Reload the page.", 0);
+    const freshBank = await loadRemoteBank(subject);
+    if (st.mode === "write" && st.index !== null) {
+      const current = freshBank.questions[st.index];
+      if (!current || current.question !== st.orig.question) {
+        throw new GitHubError("This question was changed by someone else. Reload the page and try again.", 0);
+      }
+    }
 
-    const put = { [SUBJECTS_PATH]: serializeSubjects(fresh) };
-    const del = [];
-    if (plan.writeQa) put[plan.path] = plan.content;
-    for (const f of plan.files) if (f.status === "D") del.push(f.path);
+    let put = {};
+    let del = [];
+    let built = { list: freshBank.questions, position: null };
+    let path = freshBank.path;
+    if (plan.qaChanged) {
+      built = buildList(freshBank.questions);
+      const change = planBankChange(fresh, subject.id, freshBank.path, built.list);
+      put = change.put;
+      del = change.delete;
+      path = change.path;
+    }
     for (const img of st.images) put[img.path] = { base64: img.base64 };
-
     const commit = await commitChanges({ message, put, delete: del });
 
     // The repository now matches the form: make it the new baseline.
+    const wasImport = st.mode === "upload";
+    const wasNew = st.index === null;
     st.data = fresh;
-    st.orig = { path: plan.path, text: plan.content };
-    if (st.mode === "upload" && st.upload) st.upload.fromRepo = true;
+    st.bank = { path, questions: built.list, notes: [] };
+    st.parseNotes = [];
     st.images = [];
-    st.isNew = false;
     st.dirty = false;
     st.messageEdited = false;
     st.showProblems = false;
-    lockFields(true);
-    history.replaceState(null, "", `?s=${encodeURIComponent(d.subject.id)}&ch=${pad2(d.no)}`);
-    showPushedBanner($("banner"), commit, { href: `../chapter.html?s=${encodeURIComponent(d.subject.id)}&ch=${pad2(d.no)}`, text: "View Q&A page" });
+
+    const id = subject.id;
+    const link = wasImport || !built.position
+      ? { href: `../subject.html?s=${encodeURIComponent(id)}`, text: "View Q&A page" }
+      : { href: `../subject.html?s=${encodeURIComponent(id)}#q${built.position}`, text: "View Q&A page" };
+    showPushedBanner($("banner"), commit, link);
+
+    if (wasImport) {
+      st.upload = null;
+      renderUpload();
+      afterBankLoaded();
+    } else if (wasNew) {
+      resetForNext();
+    } else {
+      st.index = built.position - 1;
+      st.orig = built.list[st.index];
+      st.positionTouched = false;
+      positionEl.value = String(built.position);
+      $("page-title").textContent = `Edit Q${built.position}`;
+      history.replaceState(null, "", `?s=${encodeURIComponent(id)}&q=${built.position}`);
+      afterBankLoaded();
+    }
+    renderNotices();
     $("banner").scrollIntoView({ block: "nearest" });
-    refresh();
   } catch (err) {
     showErrorBanner($("banner"), err instanceof GitHubError ? err.message : `Could not commit: ${err.message}`);
     $("banner").scrollIntoView({ block: "nearest" });
@@ -620,24 +619,6 @@ window.addEventListener("beforeunload", (e) => {
 
 /* ---------- Start up ---------- */
 
-async function loadExisting(subject, chapter) {
-  const path = `${subject.folder}/${chapter.file}`;
-  const file = await getFile(path);
-  if (!file) {
-    st.parseNotes.push(`The file ${path} is listed in subjects.json but was not found in the repository.`);
-    return;
-  }
-  st.orig = { path, text: file.text };
-  if (/\.html?$/i.test(chapter.file)) {
-    st.upload = buildUpload(chapter.file, file.text, true);
-    st.mode = "upload";
-    return;
-  }
-  const parsed = parseMarkdownQA(file.text, "");
-  st.questions = parsed.questions.map((q) => newQuestion({ question: q.question, marks: q.marks, answer: q.answerMd }));
-  st.parseNotes.push(...parsed.errors.map((e) => `${e} That question was skipped and will be dropped if you save.`), ...parsed.warnings);
-}
-
 async function init() {
   renderShell("editor");
   if (!session) return;
@@ -651,44 +632,44 @@ async function init() {
   }
 
   const params = new URLSearchParams(location.search);
-  const subject = st.data.subjects.find((s) => s.id === params.get("s")) || null;
-  const wantedNo = Number(params.get("ch"));
-  const chapter = subject && wantedNo ? findChapter(subject, wantedNo) : null;
-
+  const subject = st.data.subjects.find((s) => s.id === params.get("s")) || st.data.subjects[0];
   const semesters = [...new Set(st.data.subjects.map((s) => s.semester))].sort();
-  fillSelect(semesterEl, semesters.map((n) => [String(n), `Semester ${n}`]), (subject || st.data.subjects[0]).semester);
-  fillSelect(subjectEl, subjectsOf(semesterEl.value).map((s) => [s.id, s.name]), (subject || subjectsOf(semesterEl.value)[0]).id);
-  onSubjectChanged();
+  fillSelect(semesterEl, semesters.map((n) => [String(n), `Semester ${n}`]), subject.semester);
+  fillSelect(subjectEl, subjectsOf(semesterEl.value).map((s) => [s.id, s.name]), subject.id);
+  applyColor(document.documentElement, subject.color);
 
-  if (chapter) {
-    st.isNew = false;
-    const groupIndex = subject.groups.findIndex((g) => g.chapters.includes(chapter));
-    groupEl.value = String(groupIndex);
-    noEl.value = String(chapter.no);
-    titleEl.value = chapter.title;
-    lockFields(true);
-    $("page-title").textContent = `${pad2(chapter.no)} · ${chapter.title}`;
-    document.title = `Edit ${pad2(chapter.no)} ${chapter.title} · MCA Notes Admin`;
-    if (chapter.file) {
-      try {
-        await loadExisting(subject, chapter);
-      } catch (err) {
-        showErrorBanner($("banner"), err instanceof GitHubError ? err.message : `Could not load the file: ${err.message}`);
-      }
+  st.bankLoading = true;
+  try {
+    st.bank = await loadRemoteBank(subject);
+    st.parseNotes = st.bank.notes.slice();
+  } catch (err) {
+    showErrorBanner($("banner"), err instanceof GitHubError ? err.message : `Could not load the questions: ${err.message}`);
+  }
+  st.bankLoading = false;
+
+  const wanted = params.get("q");
+  if (wanted !== null) {
+    const n = Number(wanted);
+    if (Number.isInteger(n) && n >= 1 && n <= st.bank.questions.length) {
+      st.index = n - 1;
+      st.orig = st.bank.questions[st.index];
+      const q = st.orig;
+      textEl.value = q.question;
+      marksEl.value = String(q.marks);
+      chapterEl.value = q.chapter;
+      yearsEl.value = q.years.join(", ");
+      answerEl.value = q.answer;
+      positionEl.value = String(n);
+      lockFields(true);
+      $("page-title").textContent = `Edit Q${n}`;
+      document.title = `Edit Q${n} · ${subject.name} · MCA Notes Admin`;
+    } else {
+      st.parseNotes.push(`Question ${wanted} does not exist in ${subject.name}, so this adds a new question.`);
     }
-  } else {
-    $("page-title").textContent = "New chapter";
-    if (subject) {
-      const used = subject.groups.flatMap((g) => g.chapters.map((c) => c.no));
-      noEl.value = String(Math.max(0, ...used) + 1);
-    }
-    if (params.get("ch")) st.parseNotes.push(`Chapter ${params.get("ch")} does not exist in this subject yet, so this creates a new chapter.`);
   }
 
-  if (st.mode === "write" && !st.questions.length && !st.orig.path) st.questions.push(newQuestion());
-  renderCards();
-  renderNotices();
-  setMode(st.mode);
+  afterBankLoaded();
+  setMode("write");
   st.dirty = false;
 }
 

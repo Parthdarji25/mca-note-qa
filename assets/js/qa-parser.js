@@ -1,8 +1,11 @@
 // Q&A parsing and sanitising.
 //
+// A Q&A file holds all the questions of one subject, in order. Each question has marks (5 or 10)
+// and two optional tags: a chapter (free text) and the years it was asked.
+//
 // Both parsers return a result object, never throw:
 //   {
-//     questions: [{ no, question, marks, answerHtml }],  // answerHtml is sanitised
+//     questions: [{ no, question, marks, chapter, years, answerHtml }],  // answerHtml is sanitised
 //     errors:    string[],  // problems that dropped a question or the whole file
 //     warnings:  string[],  // problems that were repaired (e.g. renumbering)
 //     removed:   string[]   // unsafe content stripped by the sanitiser
@@ -24,11 +27,47 @@ export const ALLOWED_ATTR = ["href", "src", "alt", "title", "class", "colspan", 
 
 const QUESTION_HEADING = /^## Q(\d+)\.\s+(.+)$/;
 const MARKS_LINE = /^Marks:\s*(5|10)\s*$/;
+const META_LINE = /^(Chapter|Years?):[ \t]*(.*)$/i;
 const ABSOLUTE_URL = /^([a-z][a-z0-9+.-]*:|\/\/|\/|#)/i;
 const EXTERNAL_URL = /^https?:\/\//i;
 
+/** Longest chapter tag that is kept. */
+export const MAX_CHAPTER_LENGTH = 80;
+/** Years outside this range are rejected as typos. */
+export const MIN_YEAR = 2000;
+export const MAX_YEAR = 2100;
+
 let currentBase = "";
 let hooksInstalled = false;
+
+/**
+ * Tidy a chapter tag: single spaces, no line breaks, capped length.
+ * @param {*} text
+ * @returns {string} "" when there is no tag.
+ */
+export function normalizeChapter(text) {
+  return String(text ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_CHAPTER_LENGTH);
+}
+
+/**
+ * Read a list of years such as "2024, 2025 2026".
+ * @param {string} text Separated by commas, semicolons or spaces.
+ * @returns {{years: number[], invalid: string[]}} `years` is unique and ascending; `invalid` lists rejected entries.
+ */
+export function parseYears(text) {
+  const years = [];
+  const invalid = [];
+  for (const part of String(text ?? "").split(/[\s,;]+/).filter(Boolean)) {
+    const n = Number(part);
+    if (/^\d{4}$/.test(part) && n >= MIN_YEAR && n <= MAX_YEAR) {
+      if (!years.includes(n)) years.push(n);
+    } else {
+      invalid.push(part);
+    }
+  }
+  years.sort((a, b) => a - b);
+  return { years, invalid };
+}
 
 /**
  * Join a folder and a relative path, resolving "." and ".." segments.
@@ -122,8 +161,8 @@ function renumberWarnings(sourceNos, warnings) {
 /**
  * Parse a Markdown Q&A file.
  * @param {string} text File contents.
- * @param {string} [baseFolder] Folder of the chapter file, for image paths.
- * @returns {{questions: Array<{no: number, question: string, marks: 5|10, answerHtml: string, answerMd: string}>, errors: string[], warnings: string[], removed: string[]}}
+ * @param {string} [baseFolder] Folder of the Q&A file, for image paths.
+ * @returns {{questions: Array<{no: number, question: string, marks: 5|10, chapter: string, years: number[], answerHtml: string, answerMd: string}>, errors: string[], warnings: string[], removed: string[]}}
  *   `answerMd` is the answer's original Markdown, kept so the admin editor can edit and save it.
  */
 export function parseMarkdownQA(text, baseFolder = "") {
@@ -163,12 +202,29 @@ export function parseMarkdownQA(text, baseFolder = "") {
         return;
       }
       const marks = Number(body[first].trim().match(MARKS_LINE)[1]);
-      const answerMd = body.slice(first + 1).join("\n").trim();
+
+      // Optional "Chapter:" and "Years:" lines directly under the marks line (no blank line between).
+      let chapter = "";
+      let years = [];
+      let next = first + 1;
+      for (; next < body.length; next++) {
+        const meta = body[next].trim().match(META_LINE);
+        if (!meta) break;
+        if (meta[1].toLowerCase() === "chapter") {
+          chapter = normalizeChapter(meta[2]);
+        } else {
+          const parsed = parseYears(meta[2]);
+          years = parsed.years;
+          parsed.invalid.forEach((bad) => warnings.push(`${label}: "${bad}" is not a valid year (use four digits, ${MIN_YEAR}–${MAX_YEAR}) and was ignored.`));
+        }
+      }
+
+      const answerMd = body.slice(next).join("\n").trim();
       if (!answerMd) warnings.push(`${label} has no answer text.`);
       const { html, removed: gone } = sanitizeAnswer(marked.parse(answerMd, { gfm: true }), baseFolder);
       gone.forEach((g) => removed.add(g));
       sourceNos.push(h.srcNo);
-      questions.push({ no: questions.length + 1, question: h.title, marks, answerHtml: html, answerMd });
+      questions.push({ no: questions.length + 1, question: h.title, marks, chapter, years, answerHtml: html, answerMd });
     });
 
     renumberWarnings(sourceNos, warnings);
@@ -181,8 +237,8 @@ export function parseMarkdownQA(text, baseFolder = "") {
 /**
  * Parse an HTML Q&A file.
  * @param {string} text File contents.
- * @param {string} [baseFolder] Folder of the chapter file, for image paths.
- * @returns {{questions: Array<{no: number, question: string, marks: 5|10, answerHtml: string}>, errors: string[], warnings: string[], removed: string[]}}
+ * @param {string} [baseFolder] Folder of the Q&A file, for image paths.
+ * @returns {{questions: Array<{no: number, question: string, marks: 5|10, chapter: string, years: number[], answerHtml: string}>, errors: string[], warnings: string[], removed: string[]}}
  */
 export function parseHtmlQA(text, baseFolder = "") {
   if (typeof DOMPurify === "undefined") return failure("The sanitiser library did not load. Check your connection and reload.");
@@ -227,7 +283,17 @@ export function parseHtmlQA(text, baseFolder = "") {
       const { html, removed: gone } = sanitizeAnswer(answer.innerHTML, baseFolder);
       gone.forEach((g) => removed.add(g));
       if (!answer.textContent.trim() && !answer.querySelector("img")) warnings.push(`${label} has no answer text.`);
-      questions.push({ no: questions.length + 1, question: heading.textContent.trim(), marks: Number(marksRaw), answerHtml: html });
+
+      const parsedYears = parseYears(section.getAttribute("data-years"));
+      parsedYears.invalid.forEach((bad) => warnings.push(`${label}: "${bad}" is not a valid year (use four digits, ${MIN_YEAR}–${MAX_YEAR}) and was ignored.`));
+      questions.push({
+        no: questions.length + 1,
+        question: heading.textContent.trim(),
+        marks: Number(marksRaw),
+        chapter: normalizeChapter(section.getAttribute("data-chapter")),
+        years: parsedYears.years,
+        answerHtml: html
+      });
     });
 
     return { questions, errors, warnings, removed: [...removed] };
@@ -247,15 +313,21 @@ export function parseQA(fileName, text, baseFolder = "") {
 }
 
 /**
- * Write questions in the exact Markdown file format of section 5.
- * @param {Array<{question: string, marks: number, answerMd: string}>} questions In display order.
+ * Write questions in the Markdown file format (see the format guide).
+ * `Chapter:` and `Years:` lines are written only when the question has them.
+ * @param {Array<{question: string, marks: number, chapter?: string, years?: number[], answerMd: string}>} questions In display order.
  * @returns {string} File contents ending with a newline.
  */
 export function serializeMarkdownQA(questions) {
   const blocks = questions.map((q, i) => {
     const title = q.question.replace(/\s+/g, " ").trim();
     const answer = q.answerMd.replace(/\r\n?/g, "\n").trim();
-    return `## Q${i + 1}. ${title}\nMarks: ${q.marks}\n\n${answer}`;
+    const chapter = normalizeChapter(q.chapter);
+    const years = [...new Set(q.years || [])].sort((a, b) => a - b);
+    const meta = [`Marks: ${q.marks}`];
+    if (chapter) meta.push(`Chapter: ${chapter}`);
+    if (years.length) meta.push(`Years: ${years.join(", ")}`);
+    return `## Q${i + 1}. ${title}\n${meta.join("\n")}\n\n${answer}`;
   });
   return `${blocks.join("\n\n")}\n`;
 }
@@ -263,15 +335,45 @@ export function serializeMarkdownQA(questions) {
 const escapeHtml = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 /**
- * Write questions in the HTML file format of section 5. `answerHtml` must already be sanitised
- * and parsed WITHOUT a base folder, so image paths stay relative to the chapter file.
- * @param {Array<{question: string, marks: number, answerHtml: string}>} questions
+ * Write questions in the HTML file format. `answerHtml` must already be sanitised
+ * and parsed WITHOUT a base folder, so image paths stay relative to the Q&A file.
+ * @param {Array<{question: string, marks: number, chapter?: string, years?: number[], answerHtml: string}>} questions
  * @returns {string} File contents ending with a newline.
  */
 export function serializeHtmlQA(questions) {
-  const blocks = questions.map(
-    (q) =>
-      `<section class="question" data-marks="${q.marks}">\n  <h2>${escapeHtml(q.question)}</h2>\n  <div class="answer">\n${q.answerHtml}\n  </div>\n</section>`
-  );
+  const blocks = questions.map((q) => {
+    const chapter = normalizeChapter(q.chapter);
+    const years = [...new Set(q.years || [])].sort((a, b) => a - b);
+    const attrs = [`data-marks="${q.marks}"`];
+    if (chapter) attrs.push(`data-chapter="${escapeHtml(chapter)}"`);
+    if (years.length) attrs.push(`data-years="${years.join(",")}"`);
+    return `<section class="question" ${attrs.join(" ")}>\n  <h2>${escapeHtml(q.question)}</h2>\n  <div class="answer">\n${q.answerHtml}\n  </div>\n</section>`;
+  });
   return `${blocks.join("\n\n")}\n`;
+}
+
+/**
+ * Turn sanitised answer HTML into text that is safe to store in a Markdown file.
+ * Markdown passes HTML through, but an HTML block ends at a blank line and a line indented by four
+ * spaces becomes a code block. So outside <pre>, blank lines and indentation are removed; inside
+ * <pre> (which keeps its own whitespace) each blank line is written as an &#10; entity, which
+ * renders as the same line break. The result renders the same as the original HTML.
+ * @param {string} html Sanitised answer HTML, parsed without a base folder.
+ * @returns {string}
+ */
+export function htmlAnswerToMarkdown(html) {
+  return String(html)
+    .split(/(<pre[\s\S]*?<\/pre>)/i)
+    .map((part, i) => {
+      if (i % 2) {
+        // Inside <pre>: k line breaks in a row (k-1 blank lines) become k-1 entities and one real break.
+        return part.replace(/\n(?:[ \t]*\n)+/g, (run) => {
+          const breaks = run.split("\n").length - 1;
+          return `${"&#10;".repeat(breaks - 1)}\n`;
+        });
+      }
+      return part.replace(/[ \t]+$/gm, "").replace(/^[ \t]+/gm, "").replace(/\n{2,}/g, "\n");
+    })
+    .join("")
+    .trim();
 }

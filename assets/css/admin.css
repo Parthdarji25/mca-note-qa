@@ -37,6 +37,16 @@ body.admin .container { max-width: var(--admin-max); }
 .admin-header :focus-visible { outline-color: var(--admin-badge); }
 .admin-signout { border: 1px solid #4B5160; }
 
+/* Phones: logo, ADMIN badge and Sign out on the first row, the repo on the second, the nav as a scrolling third row. */
+@media (max-width: 639px) {
+  .admin-inner { gap: 0 12px; padding-block: 8px 0; }
+  .admin-header .brand-name { display: none; }
+  .admin-signout { order: 1; margin-left: auto; }
+  .admin-repo { order: 2; flex: 1 0 100%; margin: 2px 0 4px; }
+  .admin-nav { order: 3; flex: 1 0 100%; flex-wrap: nowrap; margin: 0 calc(var(--gutter) * -1); padding-inline: calc(var(--gutter) - 12px); overflow-x: auto; border-top: 1px solid #2B2F38; scrollbar-width: none; }
+  .admin-nav a { flex: none; }
+}
+
 /* ---------- Footer ---------- */
 
 .admin-footer { margin-top: 64px; background: var(--surface); border-top: 1px solid var(--line); font-size: 14px; color: var(--text-2); }
@@ -126,16 +136,14 @@ textarea.input { min-height: 120px; padding: 10px 14px; line-height: 1.5; resize
 .data-table th, .data-table td { padding: 10px 14px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--line-soft); }
 .data-table th { background: var(--line-soft); color: var(--ink); font-weight: 600; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
 .data-table tr:last-child td { border-bottom: 0; }
-.data-table .group-row th { background: var(--surface); text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--text-2); border-bottom: 1px solid var(--line); }
 .data-table .num { width: 56px; font-family: var(--font-mono); }
-.data-table .file { font-family: var(--font-mono); font-size: 13px; overflow-wrap: anywhere; }
 .data-table .muted { color: var(--muted); }
 .row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .btn-sm { min-height: var(--touch); padding: 0 14px; font-size: 14px; }
 
 .commit-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; }
 .commit-list li { display: grid; gap: 2px; }
-.commit-list a { color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
+.commit-list a { display: flex; align-items: center; min-height: var(--touch); color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
 .commit-list .meta { color: var(--text-2); font-size: 13px; }
 .rule-list { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--text-2); font-size: 14px; }
 .rule-list code { padding: 1px 5px; background: var(--line-soft); border-radius: 4px; font-size: 12.5px; color: var(--ink); }
@@ -167,19 +175,17 @@ select.input { padding-right: 8px; }
 .image-tool { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 18px; }
 .image-tool:focus-within label { outline: 3px solid var(--accent); outline-offset: 2px; }
 
-.cards { display: grid; gap: 16px; margin-bottom: 16px; }
-.editor-card { padding: 18px; background: var(--ground); border: 1px solid var(--line); border-radius: var(--radius-lg); }
-.editor-card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
-.editor-card-head h3 { font: 600 16px/1 var(--font-mono); }
-.card-actions { display: flex; gap: 6px; }
-.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: var(--touch); height: var(--touch); border: 1px solid var(--input-border); border-radius: var(--radius-md); background: var(--surface); color: var(--ink); cursor: pointer; }
-.icon-btn:hover { border-color: var(--ink); }
-.icon-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
-.icon-btn.danger { color: var(--danger); }
-.icon-btn.danger:hover { border-color: var(--danger); background: var(--danger-bg); }
-.question-row { display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 0 12px; }
-@media (max-width: 479px) { .question-row { grid-template-columns: minmax(0, 1fr); } }
-.editor-card textarea.input { min-height: 180px; font-family: var(--font-mono); font-size: 14px; }
+.question-row { display: grid; grid-template-columns: minmax(0, 1fr) 100px 130px; gap: 0 12px; }
+@media (max-width: 599px) {
+  .question-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .question-row .field:first-child { grid-column: 1 / -1; }
+}
+.position-hint { display: block; margin: -6px 0 18px; color: var(--text-2); font-size: 14px; }
+textarea.answer-input { min-height: 280px; font-family: var(--font-mono); font-size: 14px; }
+.panel > .hint { margin-top: 8px; color: var(--text-2); font-size: 14px; }
+.optional { color: var(--muted); font-weight: 400; }
+.year-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.year-chips .chip-btn { padding: 0 16px; }
 
 .dropzone { display: grid; gap: 6px; justify-items: center; padding: 28px 16px; text-align: center; background: var(--ground); border: 2px dashed var(--input-border); border-radius: var(--radius-lg); cursor: pointer; }
 .dropzone:hover, .dropzone.is-over, .dropzone:focus-within { border-color: var(--ink); background: var(--surface); }
@@ -192,7 +198,7 @@ select.input { padding-right: 8px; }
 
 .files { margin: 0 0 16px; padding: 0; list-style: none; display: grid; gap: 6px; font-family: var(--font-mono); font-size: 13px; }
 .files li { display: flex; gap: 10px; align-items: baseline; overflow-wrap: anywhere; }
-.files .tag { flex: none; width: 20px; text-align: center; border-radius: 4px; font-weight: 500; }
+.files .tag-status { flex: none; width: 20px; text-align: center; border-radius: 4px; font-weight: 500; }
 .files .tag-A { background: var(--success-bg); color: var(--success-text); }
 .files .tag-M { background: var(--warn-bg); color: #7A5B00; }
 .files .tag-D { background: var(--danger-bg); color: var(--danger); }
@@ -232,3 +238,46 @@ select.input { padding-right: 8px; }
 .removed-box h2 { font-size: 20px; margin-bottom: 8px; }
 .removed-box p { margin-bottom: 10px; color: var(--text); }
 .removed-box .rule-list code { background: rgba(255, 255, 255, 0.7); }
+
+/* ---------- Question list ---------- */
+
+.file-line { margin: -4px 0 14px; color: var(--text-2); font-size: 14px; overflow-wrap: anywhere; }
+.file-line code { color: var(--ink); font-size: 13px; }
+.list-filters { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 0 12px; margin-bottom: 4px; }
+.list-filters .field { margin-bottom: 12px; }
+@media (max-width: 899px) { .list-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .list-filters .field:first-child { grid-column: 1 / -1; } }
+.data-table .q-cell { min-width: 220px; font-weight: 500; color: var(--ink); }
+.data-table .actions-cell { white-space: nowrap; }
+.data-table .actions-cell .row-actions { flex-wrap: nowrap; }
+.tag-list { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+
+/* Phones: table rows become stacked cards, so nothing scrolls sideways. */
+@media (max-width: 639px) {
+  .stack-table { min-width: 0; }
+  .stack-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+  .stack-table, .stack-table tbody, .stack-table tr, .stack-table td { display: block; }
+  .stack-table tr { padding: 14px 16px; border-bottom: 1px solid var(--line-soft); }
+  .stack-table tr:last-child { border-bottom: 0; }
+  .stack-table td { display: flex; align-items: baseline; gap: 12px; padding: 4px 0; border: 0; }
+  .stack-table td::before { content: attr(data-label); flex: 0 0 76px; color: var(--muted); font: 500 12px/1.6 var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase; }
+  .stack-table td.num, .stack-table td.q-cell { display: block; }
+  .stack-table td.num::before, .stack-table td.q-cell::before { display: none; }
+  .stack-table td.num { width: auto; padding-bottom: 0; color: var(--muted); font: 600 13px/1.4 var(--font-mono); }
+  .stack-table td.q-cell { min-width: 0; padding-bottom: 8px; }
+  .stack-table td.actions-cell { padding-top: 10px; }
+  .stack-table td.actions-cell::before { display: none; }
+  .stack-table .row-actions { width: 100%; }
+  .stack-table .row-actions .btn { flex: 1; }
+}
+
+/* ---------- Phones: tighter page and panels, full-width mode tabs ---------- */
+
+@media (max-width: 639px) {
+  .admin-main { padding-block: 24px 0; }
+  .admin-grid { gap: 20px; margin-top: 20px; }
+  .panel { padding: 16px; }
+  .mode-tabs { width: 100%; flex-wrap: nowrap; }
+  .mode-tabs .tab { flex: 1; padding: 0 8px; font-size: 14px; }
+  .btn-row .btn { flex: 1 1 auto; }
+  .admin-footer-inner { padding-block: 8px; }
+}

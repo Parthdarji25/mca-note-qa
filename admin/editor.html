@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
   <title>Q&amp;A editor · MCA Notes Admin</title>
-  <meta name="description" content="Write or upload the questions and answers for one chapter.">
+  <meta name="description" content="Write or import the questions and answers of a subject.">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,8 +18,8 @@
   <header class="admin-header" id="admin-header"></header>
 
   <main id="main" class="container admin-main">
-    <h1 class="admin-title" id="page-title">Q&amp;A editor</h1>
-    <p class="admin-lead">Write the questions here, or upload a ready-made .html file. Saving makes one commit that updates the Q&amp;A file and <span class="mono">data/subjects.json</span> together.</p>
+    <h1 class="admin-title" id="page-title">Add question</h1>
+    <p class="admin-lead">Write one question and its answer, or import a ready-made .html file. Saving makes one commit that updates the subject's question file and <span class="mono">data/subjects.json</span> together.</p>
 
     <div id="banner" class="banner" hidden></div>
     <div id="notices"></div>
@@ -27,7 +27,7 @@
     <div class="admin-grid editor-grid">
       <div>
         <section class="panel" aria-labelledby="details-title">
-          <h2 id="details-title">Chapter details</h2>
+          <h2 id="details-title">Details</h2>
           <div class="details-grid">
             <div class="field">
               <label for="semester">Semester</label>
@@ -37,47 +37,68 @@
               <label for="subject">Subject</label>
               <select class="input" id="subject"></select>
             </div>
-            <div class="field">
-              <label for="group">Module / Unit</label>
-              <select class="input" id="group"></select>
-            </div>
-            <div class="field">
-              <label for="chno">Chapter no.</label>
-              <input class="input mono" id="chno" type="number" min="1" max="99" inputmode="numeric">
+            <div class="field wide">
+              <label for="chapter">Chapter tag <span class="optional">(optional)</span></label>
+              <input class="input" id="chapter" type="text" maxlength="80" list="chapter-list" autocomplete="off" placeholder="For example: Cryptography">
+              <datalist id="chapter-list"></datalist>
+              <span class="hint">A label to filter by, not a place to file the question. Pick one you used before or type a new one.</span>
             </div>
             <div class="field wide">
-              <label for="chtitle">Chapter title</label>
-              <input class="input" id="chtitle" type="text" autocomplete="off">
-              <span class="hint" id="lock-hint" hidden>The subject, module and number belong to the syllabus, so they are locked. Changing the title renames the file.</span>
+              <label for="years">Years asked <span class="optional">(optional)</span></label>
+              <input class="input mono" id="years" type="text" inputmode="numeric" autocomplete="off" placeholder="2024, 2025" aria-describedby="years-hint">
+              <div class="year-chips" id="year-chips" role="group" aria-label="Quick pick years"></div>
+              <span class="hint" id="years-hint">Separate years with commas, or tap a year above. Leave empty if you don't know.</span>
             </div>
           </div>
           <p class="saves-to">Saves to <code class="mono" id="saves-to">—</code></p>
+          <p class="hint" id="lock-hint" hidden>The subject can't be changed while editing a question. To move a question, add it to the other subject and delete it here.</p>
+          <p class="hint" id="import-hint" hidden>While importing, the chapter tag and years above are applied to imported questions that don't have their own.</p>
         </section>
 
         <section class="panel" aria-labelledby="content-title">
           <div class="table-head">
-            <h2 id="content-title">Questions and answers</h2>
+            <h2 id="content-title">Question and answer</h2>
             <div class="tabs mode-tabs" role="tablist" aria-label="How to provide the questions" style="margin-top:0">
-              <button class="tab" type="button" role="tab" id="tab-write" aria-controls="write-pane" aria-selected="true">Write questions</button>
-              <button class="tab" type="button" role="tab" id="tab-upload" aria-controls="upload-pane" aria-selected="false">Upload .html file</button>
+              <button class="tab" type="button" role="tab" id="tab-write" aria-controls="write-pane" aria-selected="true">Write question</button>
+              <button class="tab" type="button" role="tab" id="tab-upload" aria-controls="upload-pane" aria-selected="false">Import .html file</button>
             </div>
           </div>
 
           <div class="image-tool">
             <label class="btn btn-sm" for="image-input">Upload image</label>
             <input class="sr-only" id="image-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
-            <span class="hint" id="image-status" role="status">PNG, JPG, GIF or WebP, up to 2 MB. Saved to the images folder with the chapter.</span>
+            <span class="hint" id="image-status" role="status">PNG, JPG, GIF or WebP, up to 2 MB. Saved in the subject's images folder.</span>
           </div>
 
           <div id="write-pane" role="tabpanel" aria-labelledby="tab-write">
-            <div id="cards" class="cards"></div>
-            <button class="btn" type="button" id="add-question">Add question</button>
+            <div class="question-row">
+              <div class="field">
+                <label for="q-text">Question</label>
+                <input class="input" id="q-text" type="text" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="q-marks">Marks</label>
+                <select class="input" id="q-marks">
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="q-position">Question no.</label>
+                <input class="input mono" id="q-position" type="number" min="1" inputmode="numeric" aria-describedby="position-hint">
+              </div>
+            </div>
+            <span class="hint position-hint" id="position-hint"></span>
+            <div class="field">
+              <label for="q-answer">Answer (Markdown)</label>
+              <textarea class="input answer-input" id="q-answer" spellcheck="true"></textarea>
+            </div>
           </div>
 
           <div id="upload-pane" role="tabpanel" aria-labelledby="tab-upload" hidden>
             <label class="dropzone" id="dropzone" for="html-input">
               <span class="dropzone-title">Drop an .html file here, or choose one</span>
-              <span class="hint">Questions go in <code class="mono">&lt;section class="question" data-marks="5"&gt;</code>. See the format guide.</span>
+              <span class="hint">Questions go in <code class="mono">&lt;section class="question" data-marks="5"&gt;</code>. They are added to the end of the subject's list. See the format guide.</span>
               <input class="sr-only" id="html-input" type="file" accept=".html,.htm,text/html">
             </label>
             <p class="upload-info" id="upload-info" role="status"></p>

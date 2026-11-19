@@ -34,17 +34,3 @@ export function applyColor(node, color) {
 export function plural(n, word) {
   return `${n} ${word}${n === 1 ? "" : "s"}`;
 }
-
-/**
- * Build an inline stroke SVG icon from path data.
- * @param {string} paths Inner SVG markup (paths, circles).
- * @returns {SVGElement}
- */
-export function icon(paths) {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("class", "icon");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("aria-hidden", "true");
-  svg.innerHTML = paths; // trusted constant markup only
-  return svg;
-}

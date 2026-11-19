@@ -19,7 +19,7 @@
 
   <main id="main" class="container admin-main">
     <h1 class="admin-title">Format guide</h1>
-    <p class="admin-lead">Every chapter is one file, written either as Markdown or as HTML. Marks are always 5 or 10. Questions are numbered Q1, Q2, Q3 in order.</p>
+    <p class="admin-lead">Every subject is one file of questions, written either as Markdown or as HTML. Marks are always 5 or 10. Questions are numbered Q1, Q2, Q3 in order. A chapter tag and the years a question was asked are optional.</p>
 
     <div class="tabs" role="tablist" aria-label="File format">
       <button class="tab" type="button" role="tab" id="tab-md" aria-controls="panel-md" aria-selected="true">Markdown (.md)</button>
@@ -31,6 +31,8 @@
       <h2>Example file</h2>
       <pre class="code-panel" tabindex="0" aria-label="Markdown example file"><code>## Q1. What is cryptography? Explain its goals.
 Marks: 5
+Chapter: Cryptography
+Years: 2024, 2025
 
 **Cryptography** protects information by turning it into cipher text.
 
@@ -53,7 +55,7 @@ Marks: 10
 print("code blocks keep their spacing")
 ```
 
-![Key exchange](images/ch02-key-exchange.png)
+![Key exchange](images/key-exchange.png)
 
 Read more on [Wikipedia](https://en.wikipedia.org/wiki/Cryptography).</code></pre>
 
@@ -64,14 +66,16 @@ Read more on [Wikipedia](https://en.wikipedia.org/wiki/Cryptography).</code></pr
           <tbody>
             <tr><th scope="row">Question</th><td><code>## Q1. Your question?</code></td><td>One line. Must start with <code>## Q</code>, a number and a full stop. Numbers are reassigned by position, so gaps are fixed on save.</td></tr>
             <tr><th scope="row">Marks</th><td><code>Marks: 5</code></td><td>Must be the first non-empty line after the question. Only <code>5</code> or <code>10</code>.</td></tr>
-            <tr><th scope="row">Answer</th><td>Everything after the marks line</td><td>Ends at the next <code>## Q…</code> line.</td></tr>
+            <tr><th scope="row">Chapter tag</th><td><code>Chapter: Cryptography</code></td><td>Optional. A label to filter by, not a place to file the question. Goes on the line right under <code>Marks:</code> with no blank line between. Up to 80 characters.</td></tr>
+            <tr><th scope="row">Years asked</th><td><code>Years: 2024, 2025</code></td><td>Optional. Four-digit years from 2000 to 2100, separated by commas. Goes under <code>Marks:</code> (before or after <code>Chapter:</code>), with no blank line between.</td></tr>
+            <tr><th scope="row">Answer</th><td>Everything after the marks and tag lines</td><td>Starts after the first blank line. Ends at the next <code>## Q…</code> line.</td></tr>
             <tr><th scope="row">Sub-heading</th><td><code>### Heading</code></td><td>Use <code>###</code> and <code>####</code> only inside answers.</td></tr>
             <tr><th scope="row">Bold, italic, code</th><td><code>**bold**</code> <code>*italic*</code> <code>`code`</code></td><td></td></tr>
             <tr><th scope="row">Bullet list</th><td><code>- item</code></td><td>Indent by two spaces for a nested list.</td></tr>
             <tr><th scope="row">Numbered list</th><td><code>1. step</code></td><td></td></tr>
             <tr><th scope="row">Table</th><td><code>| A | B |</code> then <code>|---|---|</code></td><td>Leave a blank line before the table.</td></tr>
             <tr><th scope="row">Code block</th><td>Three backticks, code, three backticks</td><td>Add a language after the first fence if you like.</td></tr>
-            <tr><th scope="row">Image</th><td><code>![alt](images/ch02-name.png)</code></td><td>Path is relative to the chapter file. Use <em>Upload image</em> in the editor to get the right name.</td></tr>
+            <tr><th scope="row">Image</th><td><code>![alt](images/name.png)</code></td><td>Path is relative to the subject's folder. Use <em>Upload image</em> in the editor to get the right name.</td></tr>
             <tr><th scope="row">Link</th><td><code>[text](https://example.com)</code></td><td>External links open in a new tab.</td></tr>
             <tr><th scope="row">Remember box</th><td><code>&gt; **Remember:** text</code></td><td>Shown as a highlighted note. Must start with <code>**Remember:**</code>.</td></tr>
           </tbody>
@@ -82,7 +86,7 @@ Read more on [Wikipedia](https://en.wikipedia.org/wiki/Cryptography).</code></pr
     <!-- ===================== HTML ===================== -->
     <section id="panel-html" role="tabpanel" aria-labelledby="tab-html" class="guide-panel" hidden>
       <h2>Example file</h2>
-      <pre class="code-panel" tabindex="0" aria-label="HTML example file"><code>&lt;section class="question" data-marks="5"&gt;
+      <pre class="code-panel" tabindex="0" aria-label="HTML example file"><code>&lt;section class="question" data-marks="5" data-chapter="Cryptography" data-years="2024,2025"&gt;
   &lt;h2&gt;What is cryptography? Explain its goals.&lt;/h2&gt;
   &lt;div class="answer"&gt;
     &lt;p&gt;&lt;strong&gt;Cryptography&lt;/strong&gt; protects information.&lt;/p&gt;
@@ -103,7 +107,7 @@ Read more on [Wikipedia](https://en.wikipedia.org/wiki/Cryptography).</code></pr
       &lt;tbody&gt;&lt;tr&gt;&lt;td&gt;Keys&lt;/td&gt;&lt;td&gt;One&lt;/td&gt;&lt;td&gt;Two&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
     &lt;/table&gt;
     &lt;pre&gt;&lt;code&gt;print("hello")&lt;/code&gt;&lt;/pre&gt;
-    &lt;p&gt;&lt;img src="images/ch02-key-exchange.png" alt="Key exchange"&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;img src="images/key-exchange.png" alt="Key exchange"&gt;&lt;/p&gt;
   &lt;/div&gt;
 &lt;/section&gt;</code></pre>
 
@@ -113,13 +117,15 @@ Read more on [Wikipedia](https://en.wikipedia.org/wiki/Cryptography).</code></pr
           <thead><tr><th scope="col">Element</th><th scope="col">You write</th><th scope="col">Notes</th></tr></thead>
           <tbody>
             <tr><th scope="row">Question</th><td><code>&lt;section class="question" data-marks="5"&gt;</code></td><td>One section per question. <code>data-marks</code> must be <code>5</code> or <code>10</code>.</td></tr>
+            <tr><th scope="row">Chapter tag</th><td><code>data-chapter="Cryptography"</code></td><td>Optional attribute on the section. A label to filter by. Up to 80 characters.</td></tr>
+            <tr><th scope="row">Years asked</th><td><code>data-years="2024,2025"</code></td><td>Optional attribute on the section. Four-digit years from 2000 to 2100, separated by commas.</td></tr>
             <tr><th scope="row">Question text</th><td><code>&lt;h2&gt;…&lt;/h2&gt;</code></td><td>The first <code>h2</code> in the section.</td></tr>
             <tr><th scope="row">Answer</th><td><code>&lt;div class="answer"&gt;…&lt;/div&gt;</code></td><td>Everything the reader sees under the question.</td></tr>
             <tr><th scope="row">Text</th><td><code>p h3 h4 strong em b i u br sup sub hr</code></td><td>Use <code>h3</code> or <code>h4</code> for headings inside answers.</td></tr>
             <tr><th scope="row">Lists</th><td><code>ul ol li</code></td><td></td></tr>
             <tr><th scope="row">Table</th><td><code>table thead tbody tr th td</code></td><td></td></tr>
             <tr><th scope="row">Code</th><td><code>&lt;pre&gt;&lt;code&gt;…&lt;/code&gt;&lt;/pre&gt;</code></td><td>Escape <code>&lt;</code> as <code>&amp;lt;</code> inside code.</td></tr>
-            <tr><th scope="row">Image</th><td><code>&lt;img src="images/ch02-name.png" alt="…"&gt;</code></td><td>Path is relative to the chapter file.</td></tr>
+            <tr><th scope="row">Image</th><td><code>&lt;img src="images/name.png" alt="…"&gt;</code></td><td>Path is relative to the subject's folder.</td></tr>
             <tr><th scope="row">Link</th><td><code>&lt;a href="https://…"&gt;text&lt;/a&gt;</code></td><td>External links open in a new tab.</td></tr>
             <tr><th scope="row">Remember box</th><td><code>&lt;blockquote class="note"&gt;…&lt;/blockquote&gt;</code></td><td>Shown as a highlighted note.</td></tr>
           </tbody>
@@ -143,21 +149,21 @@ Read more on [Wikipedia](https://en.wikipedia.org/wiki/Cryptography).</code></pr
     <!-- ===================== Naming ===================== -->
     <section id="naming" class="panel guide-section" aria-labelledby="naming-title">
       <h2 id="naming-title">File naming rules</h2>
-      <p>You never type a path. The editor builds it from the semester, subject, chapter number and title:</p>
-      <pre class="code-panel" tabindex="0" aria-label="Path pattern"><code>qa/sem-&lt;N&gt;/&lt;subject-slug&gt;/ch&lt;NN&gt;-&lt;chapter-slug&gt;.md    (or .html)
-qa/sem-&lt;N&gt;/&lt;subject-slug&gt;/images/ch&lt;NN&gt;-&lt;image-name&gt;.png</code></pre>
+      <p>You never type a path. The editor builds it from the semester and subject:</p>
+      <pre class="code-panel" tabindex="0" aria-label="Path pattern"><code>qa/sem-&lt;N&gt;/&lt;subject-slug&gt;/questions.md    (or questions.html)
+qa/sem-&lt;N&gt;/&lt;subject-slug&gt;/images/&lt;image-name&gt;.png</code></pre>
       <ul class="rule-list">
         <li>Lowercase; words joined with single hyphens.</li>
-        <li>The chapter number is always two digits: <code>ch01</code> to <code>ch14</code>.</li>
-        <li><code>&amp;</code> becomes <code>and</code>. Every other run of characters that are not <code>a-z</code> or <code>0-9</code> becomes one hyphen. Hyphens at the ends are removed.</li>
-        <li>Exactly one Q&amp;A file per chapter: <code>.md</code> or <code>.html</code>, never both. Switching format deletes the old file in the same commit.</li>
+        <li>Exactly one Q&amp;A file per subject: <code>.md</code> or <code>.html</code>, never both. Saving a question from an <code>.html</code> file converts it to <code>.md</code> and deletes the old file in the same commit.</li>
+        <li>There are no chapter files or folders. A chapter is only an optional tag on a question.</li>
+        <li>Image names come from the file name you upload: <code>&amp;</code> becomes <code>and</code>. Every other run of characters that are not <code>a-z</code> or <code>0-9</code> becomes one hyphen. Hyphens at the ends are removed.</li>
       </ul>
       <div class="table-wrap">
         <table class="data-table guide-table">
-          <thead><tr><th scope="col">Title</th><th scope="col">Slug</th></tr></thead>
+          <thead><tr><th scope="col">Name</th><th scope="col">Slug</th></tr></thead>
           <tbody>
-            <tr><td>Authentication – I</td><td><code>authentication-i</code></td></tr>
             <tr><td>Distributed Systems &amp; Cloud Computing</td><td><code>distributed-systems-cloud-computing</code></td></tr>
+            <tr><td>Key Exchange (v2)</td><td><code>key-exchange-v2</code></td></tr>
             <tr><td>Stream Cipher and Block Cipher</td><td><code>stream-cipher-and-block-cipher</code></td></tr>
           </tbody>
         </table>
@@ -167,7 +173,7 @@ qa/sem-&lt;N&gt;/&lt;subject-slug&gt;/images/ch&lt;NN&gt;-&lt;image-name&gt;.png
     <!-- ===================== Templates ===================== -->
     <section id="templates" class="panel guide-section" aria-labelledby="templates-title">
       <h2 id="templates-title">Download templates</h2>
-      <p>Start from a template, fill it in, then upload it in the editor (HTML) or paste the questions in (Markdown).</p>
+      <p>Start from a template, fill it in, then import it in the editor (HTML) or paste each question in (Markdown).</p>
       <div class="btn-row">
         <a class="btn btn-primary" href="../templates/qa-template.md" download>qa-template.md</a>
         <a class="btn" href="../templates/qa-template.html" download>qa-template.html</a>

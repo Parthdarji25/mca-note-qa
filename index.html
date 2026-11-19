@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MCA Notes</title>
-  <meta name="description" content="Free questions and answers for MCA Semester 2 and 3, chapter by chapter.">
+  <meta name="description" content="Free questions and answers for MCA Semester 2 and 3. Filter by marks, year asked and chapter.">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,15 +20,18 @@
         <span class="brand-mark" aria-hidden="true">#</span>
         <span class="brand-name">MCA Notes</span>
       </a>
-      <nav class="site-nav" aria-label="Main">
+      <nav class="site-nav" id="site-nav" aria-label="Main">
         <a href="index.html" aria-current="page">Home</a>
         <a href="#subjects">Subjects</a>
       </nav>
       <form class="site-search" role="search" onsubmit="return false">
-        <label class="sr-only" for="search">Search subjects and chapters</label>
+        <label class="sr-only" for="search">Search subjects</label>
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <input class="input" id="search" type="search" placeholder="Search subjects" autocomplete="off">
       </form>
+      <button class="nav-toggle" type="button" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
     </div>
   </header>
 
@@ -37,8 +40,8 @@
     <section class="hero">
       <div class="container">
         <p class="eyebrow">MCA · Semester 2 &amp; 3 · Free and open</p>
-        <h1>Questions &amp; answers, chapter by chapter.</h1>
-        <p class="hero-lead">Exam-style questions with worked answers for three MCA subjects. No sign-up, no ads, and your progress stays in your browser.</p>
+        <h1>Questions &amp; answers, subject by subject.</h1>
+        <p class="hero-lead">Exam-style questions with worked answers for three MCA subjects. Filter by marks, the year a question was asked, or its chapter. No sign-up, no ads, and your progress stays in your browser.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#subjects">Browse subjects</a>
           <a class="btn" href="https://github.com/Parthdarji25/mca-note-qa" target="_blank" rel="noopener noreferrer">
@@ -83,31 +86,32 @@
           <ol class="steps">
             <li>
               <div>
-                <h3>Pick a subject and chapter</h3>
-                <p>Each subject follows the syllabus, grouped by module or unit.</p>
+                <h3>Pick a subject</h3>
+                <p>Every subject is one list of questions, with no chapters to click through.</p>
               </div>
             </li>
             <li>
               <div>
-                <h3>Read the questions, reveal the answers</h3>
-                <p>Questions are marked 5 or 10. Open an answer to mark it as seen.</p>
+                <h3>Filter, then reveal the answers</h3>
+                <p>Questions are marked 5 or 10 and can be tagged with the years they were asked and a chapter. Open an answer to mark it as seen.</p>
               </div>
             </li>
             <li>
               <div>
-                <h3>Every chapter is one file on GitHub</h3>
-                <p>The notes are plain Markdown or HTML files, edited by committing to the repository.</p>
+                <h3>Every subject is one file on GitHub</h3>
+                <p>The questions are a plain Markdown or HTML file, edited by committing to the repository.</p>
               </div>
             </li>
           </ol>
           <pre class="tree" aria-label="Folder structure"><code>qa/
 ├─ sem-2/
 │  └─ information-security/
-│     ├─ ch02-cryptography.md
+│     ├─ questions.md
 │     └─ images/
 └─ sem-3/
    ├─ distributed-systems-cloud-computing/
-   └─ ethical-hacking/</code></pre>
+   └─ ethical-hacking/
+      └─ questions.html</code></pre>
         </div>
       </div>
     </section>
@@ -125,6 +129,7 @@
     </div>
   </footer>
 
+  <script type="module" src="assets/js/nav.js"></script>
   <script type="module" src="assets/js/home.js"></script>
 </body>
 </html>

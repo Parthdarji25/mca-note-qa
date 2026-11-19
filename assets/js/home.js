@@ -1,6 +1,6 @@
 // Home page: continue card, semester filter, subject cards.
 
-import { loadSubjects, pad2 } from "./data.js";
+import { loadSubjects } from "./data.js";
 import { getLast, subjectProgress } from "./progress.js";
 import { el, applyColor, plural } from "./dom.js";
 
@@ -18,17 +18,9 @@ let subjects = [];
 let semester = "all";
 let query = (new URLSearchParams(location.search).get("q") || "").trim().toLowerCase();
 
-/** "6 modules · 12 chapters", "6 units · 12 chapters" or "14 chapters". */
+/** "7 questions" or "No questions yet". */
 function metaLine(subject) {
-  const chapters = subject.groups.reduce((n, g) => n + g.chapters.length, 0);
-  const labelled = subject.groups.filter((g) => g.label);
-  const parts = [];
-  if (labelled.length) {
-    const word = labelled[0].label.startsWith("Unit") ? "unit" : "module";
-    parts.push(plural(labelled.length, word));
-  }
-  parts.push(plural(chapters, "chapter"));
-  return parts.join(" · ");
+  return subject.file && subject.questions > 0 ? plural(subject.questions, "question") : "No questions yet";
 }
 
 function buildCard(subject) {
@@ -48,16 +40,16 @@ function buildCard(subject) {
   body.append(el("p", "subject-meta", metaLine(subject)));
   body.append(el("p", "subject-summary", SUMMARIES[subject.id] || ""));
 
-  const { done, total, percent } = subjectProgress(subject);
+  const { seen, total, percent } = subjectProgress(subject);
   const wrap = el("div", "progress-wrap");
   const label = el("div", "progress-label");
-  label.append(el("span", "", "Progress"), el("span", "mono", `${done} of ${total} done`));
+  label.append(el("span", "", "Progress"), el("span", "mono", `${seen} of ${total} seen`));
   const bar = el("div", "progress");
   bar.setAttribute("role", "progressbar");
   bar.setAttribute("aria-label", `${subject.name} progress`);
   bar.setAttribute("aria-valuemin", "0");
   bar.setAttribute("aria-valuemax", String(total));
-  bar.setAttribute("aria-valuenow", String(done));
+  bar.setAttribute("aria-valuenow", String(seen));
   const fill = el("span");
   fill.style.width = `${percent}%`;
   bar.append(fill);
@@ -73,11 +65,9 @@ function buildCard(subject) {
   return card;
 }
 
-/** Does the subject match the search text (name or any chapter title)? */
+/** Does the subject name match the search text? */
 function matches(subject) {
-  if (!query) return true;
-  const haystack = [subject.name, ...subject.groups.flatMap((g) => g.chapters.map((c) => c.title))];
-  return haystack.some((t) => t.toLowerCase().includes(query));
+  return !query || subject.name.toLowerCase().includes(query);
 }
 
 /** Show or hide cards for the current semester filter and search text. */
@@ -98,19 +88,19 @@ function applyFilters() {
   }
 }
 
-/** Fill the "Continue practising" card from the last chapter opened. */
+/** Fill the "Continue practising" card from the last subject opened. */
 function renderContinue() {
   const last = getLast();
   const card = document.getElementById("continue");
   if (!last) return;
   const subject = subjects.find((s) => s.id === last.s);
-  const chapter = subject && subject.groups.flatMap((g) => g.chapters).find((c) => c.no === last.ch);
-  if (!chapter || !chapter.file) return;
+  if (!subject || !subject.file) return;
 
+  const { seen, total } = subjectProgress(subject);
   applyColor(card, subject.color);
-  card.href = `chapter.html?s=${encodeURIComponent(subject.id)}&ch=${pad2(chapter.no)}`;
-  document.getElementById("continue-title").textContent = `${pad2(chapter.no)} · ${chapter.title}`;
-  document.getElementById("continue-sub").textContent = subject.name;
+  card.href = `subject.html?s=${encodeURIComponent(subject.id)}`;
+  document.getElementById("continue-title").textContent = subject.name;
+  document.getElementById("continue-sub").textContent = `${seen} of ${plural(total, "question")} seen`;
   card.hidden = false;
 }
 
